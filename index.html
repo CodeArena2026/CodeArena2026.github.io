@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSONL 数据查看器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-input-label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .auto-load-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .auto-load-info .icon {
+            font-size: 1.2em;
+        }
+        
+        .stats {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            margin: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        tr.selected {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .detail-panel {
+            margin: 20px 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #4facfe;
+            display: none;
+        }
+        
+        .detail-panel.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .detail-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 8px;
+        }
+        
+        .detail-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: #212529;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            border: 1px solid #4a5568;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 30px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .reload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .reload-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>JSONL 数据查看器</h1>
+            <p>自动加载当前目录下的 result.jsonl 文件</p>
+        </div>
+        
+        <div class="controls">
+            <div class="auto-load-info">
+                <span class="icon">📁</span>
+                <span>已自动加载: result.jsonl</span>
+            </div>
+            
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept=".jsonl,.json">
+                <label for="fileInput" class="file-input-label">选择其他文件</label>
+            </div>
+            
+            <div class="stats" id="stats"></div>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <p>正在加载数据...</p>
+        </div>
+        
+        <div id="tableContainer" class="table-container" style="display: none;">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>攻击模型</th>
+                        <th>防御模型</th>
+                        <th>轮次</th>
+                        <th>结果</th>
+                        <th>函数签名</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="detailPanel" class="detail-panel">
+            <div class="detail-title">详细信息</div>
+            <div class="detail-content" id="detailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = [];
+        let selectedIndex = -1;
+        let currentFileName = 'result.jsonl';
+
+        // 页面加载时自动加载 result.jsonl
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLocalFile('result.jsonl');
+        });
+
+        // 文件选择器事件
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function loadLocalFile(filename) {
+            showLoading(true);
+            currentFileName = filename;
+            
+            fetch(filename)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(content => {
+                    parseJSONL(content);
+                    // 更新页面显示当前加载的文件名
+                    document.querySelector('.auto-load-info span:nth-child(2)').textContent = `已自动加载: ${filename}`;
+                    hideError();
+                })
+                .catch(error => {
+                    // 如果自动加载失败，显示错误信息，让用户手动选择
+                    showError(`自动加载 ${filename} 失败: ${error.message}`);
+                    showLoading(false);
+                });
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoading(true);
+            currentFileName = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    parseJSONL(content);
+                    // 更新页面显示当前加载的文件名
+                    document.querySelector('.auto-load-info span:nth-child(2)').textContent = `已加载: ${file.name}`;
+                    hideError();
+                } catch (error) {
+                    showError('文件读取失败: ' + error.message);
+                    showLoading(false);
+                }
+            };
+            reader.onerror = function() {
+                showError('文件读取失败');
+                showLoading(false);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseJSONL(content) {
+            try {
+                const lines = content.trim().split('\n');
+                currentData = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    try {
+                        const line = lines[i].trim();
+                        if (line) {
+                            const data = JSON.parse(line);
+                            currentData.push(data);
+                        }
+                    } catch (e) {
+                        console.warn(`第 ${i + 1} 行解析失败:`, e);
+                    }
+                }
+                
+                if (currentData.length === 0) {
+                    throw new Error('没有有效的 JSON 数据');
+                }
+                
+                renderTable();
+                updateStats();
+                showLoading(false);
+            } catch (error) {
+                showError('数据解析失败: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            currentData.forEach((data, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.attack || '-'}</td>
+                    <td>${data.defender || '-'}</td>
+                    <td>${data.epoch || '-'}</td>
+                    <td>${getStatusBadge(data.PK_res || data.result_exec)}</td>
+                    <td><code>${data.sgn || '-'}</code></td>
+                `;
+                
+                row.addEventListener('click', () => showDetail(index));
+                tableBody.appendChild(row);
+            });
+            
+            document.getElementById('tableContainer').style.display = 'block';
+            
+            // 默认显示第一条数据的详情
+            if (currentData.length > 0) {
+                showDetail(0);
+            }
+        }
+
+        function getStatusBadge(result) {
+            if (result === undefined || result === null) return '-';
+            
+            const passed = (typeof result === 'string' && result.includes('Passed')) || 
+                          result === true || 
+                          result === 'true' ||
+                          (typeof result === 'string' && result.toLowerCase() === 'passed');
+            return `<span class="status-badge ${passed ? 'status-passed' : 'status-failed'}">
+                ${passed ? '通过' : '失败'}
+            </span>`;
+        }
+
+        function showDetail(index) {
+            selectedIndex = index;
+            const data = currentData[index];
+            
+            // 更新选中行样式
+            document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
+                tr.classList.toggle('selected', i === index);
+            });
+            
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">攻击模型</div>
+                    <div class="detail-value">${data.attack || '-'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">防御模型</div>
+                    <div class="detail-value">${data.defender || '-'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">轮次</div>
+                    <div class="detail-value">${data.epoch || '-'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">PK 结果</div>
+                    <div class="detail-value">${getStatusBadge(data.PK_res || data.result_exec)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">执行结果</div>
+                    <div class="detail-value">${formatValue(data.result_exec)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">成功状态</div>
+                    <div class="detail-value">${formatValue(data.success)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">函数签名</div>
+                    <div class="detail-value"><code>${data.sgn || '-'}</code></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">测试输入</div>
+                    <div class="detail-value">${formatValue(data.test_input)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">测试结果</div>
+                    <div class="detail-value">${formatValue(data.result)}</div>
+                </div>
+
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-label">原始代码</div>
+                    <pre class="code-block">${escapeHtml(data.code || '')}</pre>
+                </div>
+
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-label">提示信息</div>
+                    <pre class="code-block">${escapeHtml(data.prompt || '')}</pre>
+                </div>
+
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-label">完成内容</div>
+                    <pre class="code-block">${escapeHtml(data.completion || '')}</pre>
+                </div>
+            `;
+            
+            document.getElementById('detailPanel').classList.add('active');
+        }
+
+        function formatValue(value) {
+            if (value === undefined || value === null) return '-';
+            if (Array.isArray(value)) {
+                return value.map(v => JSON.stringify(v)).join(', ');
+            }
+            if (typeof value === 'object') {
+                return JSON.stringify(value, null, 2);
+            }
+            return String(value);
+        }
+
+        function escapeHtml(text) {
+            if (text === undefined || text === null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            const passed = currentData.filter(d => {
+                const result = d.PK_res || d.result_exec;
+                return (typeof result === 'string' && result.includes('Passed')) || 
+                       result === true || 
+                       result === 'true' ||
+                       (typeof result === 'string' && result.toLowerCase() === 'passed');
+            }).length;
+            const total = currentData.length;
+            
+            stats.innerHTML = `
+                共 ${total} 条记录 | 
+                通过: <span style="color: #28a745">${passed}</span> | 
+                失败: <span style="color: #dc3545">${total - passed}</span> |
+                成功率: <span style="color: #007bff">${total > 0 ? ((passed / total * 100).toFixed(1)) : 0}%</span>
+            `;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('tableContainer').style.display = show ? 'none' : 'block';
+            document.getElementById('detailPanel').classList.remove('active');
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // 点击空白处关闭详情面板
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('tr') && !e.target.closest('.detail-panel') && !e.target.closest('.controls')) {
+                document.getElementById('detailPanel').classList.remove('active');
+                document.querySelectorAll('#tableBody tr').forEach(tr => tr.classList.remove('selected'));
+                selectedIndex = -1;
+            }
+        });
+
+        // 添加键盘导航支持
+        document.addEventListener('keydown', function(e) {
+            if (currentData.length === 0) return;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newIndex = selectedIndex < currentData.length - 1 ? selectedIndex + 1 : 0;
+                showDetail(newIndex);
+                // 滚动到选中的行
+                const row = document.querySelectorAll('#tableBody tr')[newIndex];
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newIndex = selectedIndex > 0 ? selectedIndex - 1 : currentData.length - 1;
+                showDetail(newIndex);
+                // 滚动到选中的行
+                const row = document.querySelectorAll('#tableBody tr')[newIndex];
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    </script>
+</body>
+</html>
