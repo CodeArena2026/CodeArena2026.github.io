@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSONL 数据分析仪表板</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 样式表,引入Font Awesome图标字体 -->
+    <!-- root使用CSS变量定义一套完整的设计系统 -->
+    <!-- 全局样式 -->
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
@@ -196,6 +200,11 @@
         .positive-change {
             background: rgba(66, 230, 149, 0.15);
             color: #0fa968;
+        }
+
+        .negative-change {
+            background: rgba(255, 117, 140, 0.15);
+            color: #e53e3e;
         }
 
         .content-area {
@@ -608,6 +617,206 @@
             justify-content: space-between;
         }
 
+        /* 导航栏样式 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: #6e8efb;
+        }
+        
+        .navbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(110, 142, 251, 0.3);
+        }
+        
+        /* 过滤器区域 */
+        .filter-area {
+            display: flex;
+            gap: 20px;
+            padding: 20px 30px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+            transition: var(--transition-smooth);
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #6e8efb;
+            box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.2);
+        }
+        
+        .filter-search {
+            margin-left: auto;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        /* 图表区域 */
+        .chart-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            background: var(--light-bg);
+        }
+        
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            padding: 25px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chart-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition-smooth);
+        }
+        
+        .chart-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: #6e8efb;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* 表格操作按钮 */
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .record-count {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .table-btn {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: var(--text-secondary);
+        }
+        
+        .table-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: #6e8efb;
+        }
+        
+        /* 主要按钮样式 */
+        .primary-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(110, 142, 251, 0.3);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 1200px) {
             .dashboard {
@@ -615,6 +824,10 @@
             }
             
             .content-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-area {
                 grid-template-columns: 1fr;
             }
         }
@@ -641,58 +854,160 @@
             .search-box {
                 width: 100%;
             }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .navbar-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-area {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <i class="fas fa-chart-line"></i>
+                <span>JSONL 数据分析仪表板</span>
+            </div>
+        </nav>
+        
+        <!-- 页面头部 -->
         <div class="header">
             <div class="header-content">
-                <h1>JSONL 数据分析仪表板</h1>
-                <p>实时数据可视化与分析平台 | 点击表格行查看详细数据</p>
-            </div>
-            <div class="header-icon">
-                <i class="fas fa-chart-line"></i>
+                <h1>实时数据可视化与分析平台</h1>
+                <p>点击表格行查看详细数据 | 支持多种筛选和导出功能</p>
             </div>
         </div>
         
+        <!-- 过滤器区域 -->
+        <div class="filter-area" id="filterArea">
+            <div class="filter-section">
+                <label for="seedFilter" class="filter-label">Seed Problem:</label>
+                <select id="seedFilter" class="filter-select">
+                    <option value="">全部</option>
+                </select>
+            </div>
+            <div class="filter-section">
+                <label for="attackFilter" class="filter-label">攻击模型:</label>
+                <select id="attackFilter" class="filter-select">
+                    <option value="">全部</option>
+                </select>
+            </div>
+            <div class="filter-section">
+                <label for="defenderFilter" class="filter-label">防御模型:</label>
+                <select id="defenderFilter" class="filter-select">
+                    <option value="">全部</option>
+                </select>
+            </div>
+            <div class="filter-section">
+                <label for="resultFilter" class="filter-label">结果:</label>
+                <select id="resultFilter" class="filter-select">
+                    <option value="">全部</option>
+                    <option value="passed">通过</option>
+                    <option value="failed">失败</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 仪表板统计卡片 -->
         <div class="dashboard" id="dashboard">
             <!-- 统计数据卡片将通过JavaScript动态生成 -->
         </div>
         
+        <!-- 图表区域 -->
+        <div class="chart-area" id="chartArea">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>模型成功率对比</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" data-chart="successRate" data-type="bar">柱状图</button>
+                        <button class="chart-btn" data-chart="successRate" data-type="pie">饼图</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Seed Problem 分布</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button>
+                        <button class="chart-btn" data-chart="seedDistribution" data-type="doughnut">环形图</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="seedDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内容区域 -->
         <div class="content-area">
+            <!-- 主内容区 -->
             <div class="main-content">
                 <div class="table-header">
                     <h2><i class="fas fa-table"></i> 数据记录</h2>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="搜索数据...">
+                    <div class="table-actions">
+                        <span id="recordCount" class="record-count">0 条记录</span>
                     </div>
                 </div>
                 
+                <!-- 错误提示 -->
                 <div id="error" class="error" style="display: none;">
                     <i class="fas fa-exclamation-circle"></i>
                     <div id="errorMessage"></div>
                 </div>
                 
+                <!-- 加载状态 -->
                 <div id="loading" class="loading" style="display: none;">
                     <div class="spinner"></div>
                     <p>正在加载数据...</p>
                 </div>
                 
+                <!-- 空状态 -->
                 <div id="emptyState" class="empty-state" style="display: none;">
                     <div class="empty-icon">
                         <i class="fas fa-database"></i>
                     </div>
                     <h3>暂无数据</h3>
                     <p>请加载一个 JSONL 文件或确保 result.jsonl 文件存在于当前目录</p>
+                    <button class="primary-btn" id="loadFileBtn">
+                        <i class="fas fa-folder-open"></i>
+                        选择文件
+                    </button>
                 </div>
                 
+                <!-- 表格容器 -->
                 <div class="table-container" id="tableContainer" style="display: none;">
                     <table id="dataTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Seed Problem</th>
                                 <th>攻击模型</th>
                                 <th>防御模型</th>
                                 <th>轮次</th>
@@ -706,13 +1021,15 @@
                 </div>
             </div>
             
+            <!-- 侧边栏 -->
             <div class="sidebar">
+                <!-- 文件控制 -->
                 <div class="file-controls">
                     <div class="file-input-wrapper">
                         <input type="file" id="fileInput" class="file-input" accept=".jsonl,.json" style="display: none;">
                         <label for="fileInput" class="file-input-label">
                             <i class="fas fa-folder-open"></i>
-                            选择其他文件
+                            选择文件
                         </label>
                         <button class="reload-btn" id="reloadBtn" title="重新加载">
                             <i class="fas fa-redo"></i>
@@ -728,6 +1045,7 @@
                     </div>
                 </div>
                 
+                <!-- 详细信息面板 -->
                 <div class="detail-panel" id="detailPanel">
                     <div class="detail-header">
                         <div class="detail-title">
@@ -754,13 +1072,18 @@
             </div>
         </div>
         
+        <!-- 页脚 -->
         <div class="footer">
             <div>JSONL 数据分析仪表板 v1.0</div>
             <div id="footerStats">加载数据后显示统计信息</div>
         </div>
     </div>
 
-    <script>
+
+    <!-- 前面是页面设计，包含头部分、仪表盘部分、内容区域和页脚 -->
+    <!-- 后面是javascript代码,实现数据加载、搜索、导航和键盘操作等功能 -->
+
+    <script>     // javascript代码
         // 全局变量
         let currentData = [];
         let filteredData = [];
@@ -775,16 +1098,31 @@
             // 绑定事件
             document.getElementById('fileInput').addEventListener('change', handleFileSelect);
             document.getElementById('reloadBtn').addEventListener('click', () => loadLocalFile(currentFileName));
-            document.getElementById('searchInput').addEventListener('input', handleSearch);
             document.getElementById('prevBtn').addEventListener('click', showPreviousDetail);
             document.getElementById('nextBtn').addEventListener('click', showNextDetail);
             document.getElementById('closeBtn').addEventListener('click', closeDetailPanel);
+            document.getElementById('loadFileBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+            
+            // 过滤器事件
+            document.getElementById('seedFilter').addEventListener('change', applyFilters);
+            document.getElementById('attackFilter').addEventListener('change', applyFilters);
+            document.getElementById('defenderFilter').addEventListener('change', applyFilters);
+            document.getElementById('resultFilter').addEventListener('change', applyFilters);
+            
+            // 图表类型切换事件
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const chartType = this.getAttribute('data-type');
+                    const chartId = this.getAttribute('data-chart');
+                    updateChartType(chartId, chartType);
+                });
+            });
             
             // 键盘导航
             document.addEventListener('keydown', handleKeyboardNavigation);
         });
 
-        // 加载本地文件
+        // 加载本地jsonl文件
         async function loadLocalFile(filename) {
             showLoading(true);
             hideError();
@@ -811,7 +1149,7 @@
             }
         }
 
-        // 处理文件选择
+        // 处理用户选择的文件
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -844,33 +1182,156 @@
             reader.readAsText(file);
         }
 
+        // 字符串归一化函数
+        function normStr(x) {
+            return (x ?? '').toString().trim();
+        }
+        
+        // 用于分桶/比较的 key 归一化函数
+        function normKey(x) {
+            return normStr(x).toLowerCase();
+        }
+        
+        // 净化 JSON 字符串，替换 Infinity/NaN 为 null
+        function sanitizeJsonLine(line) {
+            let out = '';
+            let i = 0;
+            let inStr = false;
+            let esc = false;
+
+            while (i < line.length) {
+                const ch = line[i];
+
+                if (inStr) {
+                    out += ch;
+                    if (esc) {
+                        esc = false;
+                    } else if (ch === '\\') {
+                        esc = true;
+                    } else if (ch === '"') {
+                        inStr = false;
+                    }
+                    i++;
+                    continue;
+                }
+
+                if (ch === '"') {
+                    inStr = true;
+                    out += ch;
+                    i++;
+                    continue;
+                }
+
+                if (line.startsWith('Infinity', i) && isTokenBoundary(line, i, i + 8)) {
+                    out += 'null';
+                    i += 8;
+                    continue;
+                }
+                if (line.startsWith('NaN', i) && isTokenBoundary(line, i, i + 3)) {
+                    out += 'null';
+                    i += 3;
+                    continue;
+                }
+
+                out += ch;
+                i++;
+            }
+
+            return out;
+        }
+
+        function isTokenBoundary(s, start, end) {
+            const left = start - 1 >= 0 ? s[start - 1] : '';
+            const right = end < s.length ? s[end] : '';
+            const isWord = c => /[A-Za-z0-9_]/.test(c);
+            return (!left || !isWord(left)) && (!right || !isWord(right));
+        }
+        
+        // 归一化数据
+        function normalizeData(data, id) {
+            data._id = id;
+            
+            data.basic = normStr(data.basic);
+            data.constrain_pro = normStr(data.constrain_pro);
+            data.attack = normStr(data.attack);
+            data.defender = normStr(data.defender);
+
+            data._basicKey = normKey(data.basic || data.constrain_pro);
+            data._attackKey = normKey(data.attack);
+            data._defenderKey = normKey(data.defender);
+            
+            return data;
+        }
+        
         // 解析 JSONL 数据
         function parseJSONL(content) {
             try {
                 const lines = content.trim().split('\n');
+                const totalLines = lines.length;
                 currentData = [];
+                let fixed = 0, dropped = 0;
                 
                 for (let i = 0; i < lines.length; i++) {
+                    const raw = lines[i].trim();
+                    if (!raw) continue;
+                    
                     try {
-                        const line = lines[i].trim();
-                        if (line) {
-                            const data = JSON.parse(line);
-                            // 添加唯一 ID
-                            data._id = i + 1;
-                            currentData.push(data);
+                        const data = JSON.parse(raw);
+              
+                        const normalizedData = normalizeData(data, i + 1);
+                        currentData.push(normalizedData);
+                        continue;
+                    } catch (e1) {
+                        //净化 Infinity/NaN
+                        try {
+                            const cleaned = sanitizeJsonLine(raw);
+                            const data = JSON.parse(cleaned);
+                            data._sanitized = true;
+                        
+                            const normalizedData = normalizeData(data, i + 1);
+                            currentData.push(normalizedData);
+                            fixed++;
+                        } catch (e2) {
+                            console.warn(`第 ${i + 1} 行解析失败(净化后仍失败):`, e2);
+                            dropped++;
                         }
-                    } catch (e) {
-                        console.warn(`第 ${i + 1} 行解析失败:`, e);
                     }
                 }
+                
+                const parsedLines = currentData.length;
+                const droppedLines = totalLines - parsedLines;
+                
+                console.log('数据校验/对账:');
+                console.log('总行数:', totalLines);
+                console.log('解析成功行数:', parsedLines);
+                console.log('净化修复行数:', fixed);
+                console.log('丢弃行数:', dropped);
+                
+                // 按 basicKey 和 attackKey 分组统计
+                const groupCount = {};
+                currentData.forEach(d => {
+                    const key = `${d._basicKey}|${d._attackKey}`;
+                    groupCount[key] = (groupCount[key] || 0) + 1;
+                });
+                
+                console.log('分组统计（前 50 条）:');
+                console.table(Object.entries(groupCount).slice(0, 50));
                 
                 if (currentData.length === 0) {
                     throw new Error('没有有效的 JSON 数据');
                 }
                 
                 filteredData = [...currentData];
+                
+                // 更新过滤器选项
+                updateFilters();
+                
                 renderDashboard();
                 renderTable();
+                
+                // 渲染图表
+                renderCharts();
+                
                 updateFileInfo();
                 showLoading(false);
                 hideEmptyState();
@@ -893,14 +1354,14 @@
             const dashboard = document.getElementById('dashboard');
             
             // 计算统计数据
-            const total = currentData.length;
-            const passed = currentData.filter(d => isPassed(d.PK_res || d.result_exec)).length;
+            const total = filteredData.length;
+            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
             const failed = total - passed;
             const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
             
             // 计算模型数量
-            const attackModels = [...new Set(currentData.map(d => d.attack).filter(Boolean))];
-            const defenseModels = [...new Set(currentData.map(d => d.defender).filter(Boolean))];
+            const attackModels = [...new Set(filteredData.map(d => d.attack).filter(Boolean))];
+            const defenseModels = [...new Set(filteredData.map(d => d.defender).filter(Boolean))];
             
             dashboard.innerHTML = `
                 <div class="stat-card success">
@@ -918,7 +1379,7 @@
                     </div>
                     <div class="stat-value">${failed}</div>
                     <div class="stat-label">失败测试</div>
-                    <div class="stat-change">失败率 ${(100 - successRate).toFixed(1)}%</div>
+                    <div class="stat-change negative-change">失败率 ${(100 - successRate).toFixed(1)}%</div>
                 </div>
                 
                 <div class="stat-card primary">
@@ -950,6 +1411,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${data._id}</td>
+                    <td>${data.basic || data.constrain_pro || '-'}</td>
                     <td><strong>${data.attack || '-'}</strong></td>
                     <td>${data.defender || '-'}</td>
                     <td><span class="badge">${data.epoch || '-'}</span></td>
@@ -961,6 +1423,7 @@
                 tableBody.appendChild(row);
             });
             
+            document.getElementById('recordCount').textContent = `${filteredData.length} 条记录`;
             updateFooterStats();
         }
 
@@ -1007,6 +1470,20 @@
                         <i class="fas fa-id-card"></i> ID
                     </div>
                     <div class="detail-value">${data._id}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">
+                        <i class="fas fa-puzzle-piece"></i> Seed Problem
+                    </div>
+                    <div class="detail-value">${data.basic || '-'}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">
+                        <i class="fas fa-cogs"></i> 约束问题
+                    </div>
+                    <div class="detail-value">${data.constrain_pro || '-'}</div>
                 </div>
                 
                 <div class="detail-card">
@@ -1089,12 +1566,6 @@
             
             // 显示详情面板
             document.getElementById('detailPanel').classList.add('active');
-            
-            // 滚动到选中的行
-            const row = document.querySelectorAll('#tableBody tr')[index];
-            if (row) {
-                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
         }
 
         // 显示上一条详情
@@ -1147,28 +1618,6 @@
             }
         }
 
-        // 处理搜索
-        function handleSearch(event) {
-            const searchTerm = event.target.value.toLowerCase();
-            
-            if (searchTerm.trim() === '') {
-                filteredData = [...currentData];
-            } else {
-                filteredData = currentData.filter(item => {
-                    return JSON.stringify(item).toLowerCase().includes(searchTerm);
-                });
-            }
-            
-            renderTable();
-            
-            // 如果有搜索结果，显示第一条
-            if (filteredData.length > 0) {
-                showDetail(0);
-            } else {
-                closeDetailPanel();
-            }
-        }
-
         // 处理键盘导航
         function handleKeyboardNavigation(event) {
             if (filteredData.length === 0) return;
@@ -1207,13 +1656,332 @@
         // 更新页脚统计信息
         function updateFooterStats() {
             const total = filteredData.length;
-            const passed = filteredData.filter(d => isPassed(d.PK_res || d.result_exec)).length;
+            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
             const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
             
             document.getElementById('footerStats').textContent = 
                 `显示 ${total} 条记录 | 通过: ${passed} | 失败: ${total - passed} | 成功率: ${successRate}%`;
         }
 
+        // 应用过滤器
+        function applyFilters() {
+            const seedFilter = document.getElementById('seedFilter').value;
+            const attackFilter = document.getElementById('attackFilter').value;
+            const defenderFilter = document.getElementById('defenderFilter').value;
+            const resultFilter = document.getElementById('resultFilter').value;
+            
+            filteredData = currentData.filter(data => {
+                const seedMatch = !seedFilter || data._basicKey === normKey(seedFilter);
+                const attackMatch = !attackFilter || data._attackKey === normKey(attackFilter);
+                const defenderMatch = !defenderFilter || data._defenderKey === normKey(defenderFilter);
+                
+                let resultMatch = true;
+                if (resultFilter) {
+                    const passed = isPassed(data.PK_res ?? data.result_exec);
+                    resultMatch = (resultFilter === 'passed' && passed) || (resultFilter === 'failed' && !passed);
+                }
+                
+                return seedMatch && attackMatch && defenderMatch && resultMatch;
+            });
+            
+            renderDashboard();
+            renderTable();
+            renderCharts();
+            
+            // 如果有筛选结果，显示第一个详情
+            if (filteredData.length > 0) {
+                showDetail(0);
+            } else {
+                closeDetailPanel();
+            }
+        }
+        
+        // 更新过滤器选项
+        function updateFilters() {
+            // 提取所有唯一值
+            const seedProblems = [...new Set(currentData.map(d => d.basic).filter(Boolean))];
+            const attackModels = [...new Set(currentData.map(d => d.attack).filter(Boolean))];
+            const defenderModels = [...new Set(currentData.map(d => d.defender).filter(Boolean))];
+            
+            // 更新 Seed Problem 过滤器
+            const seedFilter = document.getElementById('seedFilter');
+            seedFilter.innerHTML = '<option value="">全部</option>';
+            seedProblems.forEach(seed => {
+                const option = document.createElement('option');
+                option.value = seed;
+                option.textContent = seed;
+                seedFilter.appendChild(option);
+            });
+            
+            // 更新攻击模型过滤器
+            const attackFilter = document.getElementById('attackFilter');
+            attackFilter.innerHTML = '<option value="">全部</option>';
+            attackModels.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                attackFilter.appendChild(option);
+            });
+            
+            // 更新防御模型过滤器
+            const defenderFilter = document.getElementById('defenderFilter');
+            defenderFilter.innerHTML = '<option value="">全部</option>';
+            defenderModels.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                defenderFilter.appendChild(option);
+            });
+        }
+        
+        // 图表实例
+        let charts = {};
+        
+        // 渲染图表
+        function renderCharts() {
+            renderSuccessRateChart();
+            renderSeedDistributionChart();
+        }
+        
+        // 渲染成功率对比图表
+        function renderSuccessRateChart() {
+            const ctx = document.getElementById('successRateChart').getContext('2d');
+            
+            // 准备数据
+                const models = [...new Set(filteredData.map(d => d.defender).filter(Boolean))];
+                const data = models.map(model => {
+                    const modelData = filteredData.filter(d => d.defender === model);
+                    const passed = modelData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
+                    const total = modelData.length;
+                    const successRate = total > 0 ? (passed / total) * 100 : 0;
+                    return {
+                        model: model,
+                    successRate: successRate,
+                    passed: passed,
+                    total: total
+                };
+            });
+            
+            // 销毁旧图表
+            if (charts.successRate) {
+                charts.successRate.destroy();
+            }
+            
+            // 创建新图表
+            charts.successRate = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.model),
+                    datasets: [{
+                        label: '成功率 (%)',
+                        data: data.map(item => item.successRate),
+                        backgroundColor: 'rgba(110, 142, 251, 0.8)',
+                        borderColor: 'rgba(110, 142, 251, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '成功率 (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const item = data[context.dataIndex];
+                                    return `通过: ${item.passed} / ${item.total}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 渲染 Seed Problem 分布图表
+        function renderSeedDistributionChart() {
+            const ctx = document.getElementById('seedDistributionChart').getContext('2d');
+            
+            // 准备数据
+            const seedCounts = {};
+            filteredData.forEach(data => {
+                const seed = data.basic || data.constrain_pro;
+                if (seed) {
+                    seedCounts[seed] = (seedCounts[seed] || 0) + 1;
+                }
+            });
+            
+            const labels = Object.keys(seedCounts);
+            const values = Object.values(seedCounts);
+            
+            // 销毁旧图表
+            if (charts.seedDistribution) {
+                charts.seedDistribution.destroy();
+            }
+            
+            // 创建新图表
+            charts.seedDistribution = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(110, 142, 251, 0.8)',
+                            'rgba(66, 230, 149, 0.8)',
+                            'rgba(255, 117, 140, 0.8)',
+                            'rgba(255, 209, 102, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(122, 103, 238, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(110, 142, 251, 1)',
+                            'rgba(66, 230, 149, 1)',
+                            'rgba(255, 117, 140, 1)',
+                            'rgba(255, 209, 102, 1)',
+                            'rgba(79, 172, 254, 1)',
+                            'rgba(122, 103, 238, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 更新图表类型
+        function updateChartType(chartId, type) {
+            if (chartId === 'successRate') {
+                const ctx = document.getElementById('successRateChart').getContext('2d');
+                if (charts.successRate) {
+                    charts.successRate.destroy();
+                }
+                
+                // 准备数据
+                const models = [...new Set(filteredData.map(d => d.defender).filter(Boolean))];
+                const data = models.map(model => {
+                    const modelData = filteredData.filter(d => d.defender === model);
+                    const passed = modelData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
+                    const total = modelData.length;
+                    const successRate = total > 0 ? (passed / total) * 100 : 0;
+                    return {
+                        model: model,
+                        successRate: successRate,
+                        passed: passed,
+                        total: total
+                    };
+                });
+                
+                charts.successRate = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: data.map(item => item.model),
+                        datasets: [{
+                            label: '成功率 (%)',
+                            data: data.map(item => item.successRate),
+                            backgroundColor: type === 'pie' ? [
+                                'rgba(110, 142, 251, 0.8)',
+                                'rgba(66, 230, 149, 0.8)',
+                                'rgba(255, 117, 140, 0.8)',
+                                'rgba(255, 209, 102, 0.8)',
+                                'rgba(79, 172, 254, 0.8)'
+                            ] : 'rgba(110, 142, 251, 0.8)',
+                            borderColor: type === 'pie' ? [
+                                'rgba(110, 142, 251, 1)',
+                                'rgba(66, 230, 149, 1)',
+                                'rgba(255, 117, 140, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(79, 172, 254, 1)'
+                            ] : 'rgba(110, 142, 251, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: type === 'pie'
+                            }
+                        }
+                    }
+                });
+            } else if (chartId === 'seedDistribution') {
+                const ctx = document.getElementById('seedDistributionChart').getContext('2d');
+                if (charts.seedDistribution) {
+                    charts.seedDistribution.destroy();
+                }
+                
+                // 准备数据
+                const seedCounts = {};
+                filteredData.forEach(data => {
+                    const seed = data.basic || data.constrain_pro;
+                    if (seed) {
+                        seedCounts[seed] = (seedCounts[seed] || 0) + 1;
+                    }
+                });
+                
+                const labels = Object.keys(seedCounts);
+                const values = Object.values(seedCounts);
+                
+                charts.seedDistribution = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: [
+                                'rgba(110, 142, 251, 0.8)',
+                                'rgba(66, 230, 149, 0.8)',
+                                'rgba(255, 117, 140, 0.8)',
+                                'rgba(255, 209, 102, 0.8)',
+                                'rgba(79, 172, 254, 0.8)',
+                                'rgba(122, 103, 238, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(110, 142, 251, 1)',
+                                'rgba(66, 230, 149, 1)',
+                                'rgba(255, 117, 140, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(79, 172, 254, 1)',
+                                'rgba(122, 103, 238, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
         // 辅助函数
         function formatValue(value) {
             if (value === undefined || value === null) return '未设置';
@@ -1234,6 +2002,7 @@
         }
 
         function truncateText(text, maxLength) {
+            if (!text) return '-';
             if (text.length <= maxLength) return text;
             return text.substring(0, maxLength) + '...';
         }
