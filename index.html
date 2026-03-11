@@ -1456,12 +1456,15 @@
             </span>`;
         }
         function formatJsonList(value) {
-    if (!value || value === '[]' || value === '{}') return value;
-
-    // 1. 将数据拆分为独立项，支持 ", " 或 "," 分隔
-    // 2. 使用正则表达式：匹配每一个“结束符号” (] 或 }) 后面的逗号
-    // 3. 将其替换为“原符号 + <br><br>”
-    return value.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
+ // 1. 如果是 null 或 undefined，返回空占位符
+    if (value === null || value === undefined) return '-';
+    
+    // 2. 强制转为字符串，确保一定有 .replace 方法
+    const str = String(value);
+    
+    // 3. 稳妥处理：通过正则同时匹配数组结尾 ] 或 对象结尾 } 后的逗号
+    // 这样无论传入的是 JSON 还是数组都能处理
+    return str.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
 }
 
         // 显示详细信息
@@ -2052,6 +2055,7 @@
     </script>
 </body>
 </html>
+
 
 
 
