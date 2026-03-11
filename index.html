@@ -222,6 +222,14 @@
             border: 1px solid var(--border-color);
         }
 
+        .content-area {
+    display: grid;
+    /* 改为 1fr 表示只有一列并占满全部空间 */
+    grid-template-columns: 1fr; 
+     }
+
+        
+
         .sidebar {
             display: flex;
             flex-direction: column;
@@ -2049,6 +2057,7 @@
     </script>
 </body>
 </html>
+
 
 
 
