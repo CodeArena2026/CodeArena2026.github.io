@@ -208,12 +208,12 @@
         }
 
         .content-area {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 30px;
-            padding: 0 30px 30px;
-        }
-
+    display: grid;
+    /* 改为 1fr 表示只有一列并占满全部空间 */
+    grid-template-columns: 1fr; 
+    gap: 30px;
+    padding: 0 30px 30px;
+}
         .main-content {
             background: var(--card-bg);
             border-radius: 18px;
@@ -1072,8 +1072,6 @@
                 </div>
             
             </div>
-            
-            
         
         <!-- 页脚 -->
         <div class="footer">
@@ -1785,7 +1783,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    tainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -2051,5 +2049,6 @@
     </script>
 </body>
 </html>
+
 
 
