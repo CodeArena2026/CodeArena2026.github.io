@@ -1455,10 +1455,13 @@
                 ${passed ? '通过' : '失败'}
             </span>`;
         }
-        function formatJsonList(str) {
-            if (!str) return '-';
-            // 强制在每一组 JSON 对象后添加换行
-            return str.replace(/}\s*,\s*{/g, '}<br><br>{');
+        function formatJsonList(value) {
+    if (!value || value === '[]' || value === '{}') return value;
+
+    // 1. 将数据拆分为独立项，支持 ", " 或 "," 分隔
+    // 2. 使用正则表达式：匹配每一个“结束符号” (] 或 }) 后面的逗号
+    // 3. 将其替换为“原符号 + <br><br>”
+    return value.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
 }
 
         // 显示详细信息
@@ -2049,6 +2052,7 @@
     </script>
 </body>
 </html>
+
 
 
 
