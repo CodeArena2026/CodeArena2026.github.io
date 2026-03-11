@@ -1455,6 +1455,11 @@
                 ${passed ? '通过' : '失败'}
             </span>`;
         }
+        function formatJsonList(str) {
+            if (!str) return '-';
+            // 强制在每一组 JSON 对象后添加换行
+            return str.replace(/}\s*,\s*{/g, '}<br><br>{');
+}
 
         // 显示详细信息
         function showDetail(index) {
@@ -1470,17 +1475,11 @@
             
             // 更新导航按钮状态
             updateNavButtons();
+        
             
             // 生成详细信息
             const detailContent = document.getElementById('detailContent');
             detailContent.innerHTML = `
-                <div class="detail-card">
-                    <div class="detail-label">
-                        <i class="fas fa-id-card"></i> ID
-                    </div>
-                    <div class="detail-value">${data._id}</div>
-                </div>
-                
                 <div class="detail-card">
                     <div class="detail-label">
                         <i class="fas fa-puzzle-piece"></i> Seed Problem
@@ -1511,13 +1510,6 @@
                 
                 <div class="detail-card">
                     <div class="detail-label">
-                        <i class="fas fa-redo"></i> 轮次
-                    </div>
-                    <div class="detail-value">${data.epoch || '-'}</div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="detail-label">
                         <i class="fas fa-check-circle"></i> PK 结果
                     </div>
                     <div class="detail-value">${getStatusBadge(data.PK_res || data.result_exec)}</div>
@@ -1541,14 +1533,14 @@
                     <div class="detail-label">
                         <i class="fas fa-keyboard"></i> 测试输入
                     </div>
-                    <div class="detail-value">${formatValue(data.test_input)}</div>
+                   <div class="detail-value">${formatJsonList(data.test_input)}</div>
                 </div>
                 
                 <div class="detail-card">
                     <div class="detail-label">
                         <i class="fas fa-chart-bar"></i> 测试结果
                     </div>
-                    <div class="detail-value">${formatValue(data.result)}</div>
+                   <div class="detail-value">${formatJsonList(data.result)}</div>
                 </div>
                 
                 <div class="detail-card full-width">
@@ -2057,6 +2049,7 @@
     </script>
 </body>
 </html>
+
 
 
 
