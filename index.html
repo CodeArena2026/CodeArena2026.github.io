@@ -1996,21 +1996,34 @@ function formatJsonList(value) {
         }
         
         // 辅助函数
-        function formatValue(value) {
-            if (value === undefined || value === null) return '未设置';
-            // 2. 如果是数组，对数组内的每个元素进行处理并换行
-            if (Array.isArray(value)) {
-                // map 遍历数组每一项，将其转为字符串后，通过 join('<br><br>') 实现回车
-                return value.map(v => {
-            // 确保每一项显示得清晰，如果是对象，格式化一下
-                return (typeof v === 'object') ? JSON.stringify(v) : String(v);
-                }).join('<br><br>'); 
-            }
-            if (typeof value === 'object') {
-                return JSON.stringify(value, null, 2);
-            }
-            return String(value);
-        }
+function formatValue(value) {
+    // 1. 处理空值
+    if (value === undefined || value === null) return '未设置';
+
+    // 2. 如果是数组：遍历每一项并加入换行
+    if (Array.isArray(value)) {
+        return value.map(v => {
+            // 如果数组里嵌套了对象，递归调用 formatValue，或者直接转 JSON
+            return (typeof v === 'object' && v !== null) ? JSON.stringify(v, null, 2) : String(v);
+        }).join('<br><br>'); 
+    }
+
+    // 3. 如果是普通对象：转换为格式化 JSON 后，利用 replace 实现每一行的视觉分隔
+    if (typeof value === 'object') {
+        const jsonStr = JSON.stringify(value, null, 2);
+        // 这里我们可以选择保留 JSON 原生格式，或者为了统一风格也做处理
+        return `<pre style="margin:0;">${escapeHtml(jsonStr)}</pre>`;
+    }
+
+    // 4. 普通字符串/数字：针对之前提到的“长字符串列表”格式进行智能分割
+    const str = String(value);
+    // 检测是否为类似 "[...], [...], [...]" 的字符串格式，如果是则进行替换
+    if (str.includes('], [') || str.includes('}, {')) {
+        return str.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
+    }
+
+    return str;
+}
 
         function escapeHtml(text) {
             if (text === undefined || text === null) return '';
@@ -2066,6 +2079,7 @@ function formatJsonList(value) {
     </script>
 </body>
 </html>
+
 
 
 
