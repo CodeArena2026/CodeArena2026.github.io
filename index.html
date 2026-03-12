@@ -1455,42 +1455,12 @@
                 ${passed ? '通过' : '失败'}
             </span>`;
         }
-        async function findHumanEvalTask(targetId) {
-    try {
-        // 1. 获取文件内容
-        const response = await fetch('humaneval.jsonl');
-        if (!response.ok) throw new Error('无法读取文件');
-        
-        const text = await response.text();
-        
-        // 2. 按行拆分并解析
-        const lines = text.split('\n');
-        
-        for (let line of lines) {
-            if (line.trim() === '') continue; // 跳过空行
-            
-            const record = JSON.parse(line);
-            
-            // 3. 匹配目标 task_id
-            if (record.task_id === targetId) {
-                return record;
-            }
-        }
-        
-        return null; // 没找到
-    } catch (error) {
-        console.error("查找 HumanEval 失败:", error);
-        return null;
-    }
-}
-
         // 显示详细信息
         function showDetail(index) {
             if (filteredData.length === 0 || index < 0 || index >= filteredData.length) return;
             
             selectedIndex = index;
             const data = filteredData[index];
-            const humaneval =findHumanEvalTask(data.basic)
             
             // 更新选中行样式
             document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
@@ -2094,6 +2064,7 @@ function formatValue(value) {
     </script>
 </body>
 </html>
+
 
 
 
