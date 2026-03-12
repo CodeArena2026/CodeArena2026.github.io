@@ -1455,22 +1455,33 @@
                 ${passed ? '通过' : '失败'}
             </span>`;
         }
-function formatJsonList(value) {
-    // 1. 如果是 null 或 undefined，直接返回 '-'
-    if (value === null || value === undefined) return '-';
-    
-    // 2. 转换：无论传入的是什么，先变成字符串
-    // 如果是对象/数组，转成字符串；如果是数字/布尔值，转成字符串
-    let str = "";
+        async function findHumanEvalTask(targetId) {
     try {
-        str = (typeof value === 'object') ? JSON.stringify(value) : String(value);
-    } catch (e) {
-        return String(value); // 万一 JSON 转换失败，直接返回原值的字符串形式
+        // 1. 获取文件内容
+        const response = await fetch('humaneval.jsonl');
+        if (!response.ok) throw new Error('无法读取文件');
+        
+        const text = await response.text();
+        
+        // 2. 按行拆分并解析
+        const lines = text.split('\n');
+        
+        for (let line of lines) {
+            if (line.trim() === '') continue; // 跳过空行
+            
+            const record = JSON.parse(line);
+            
+            // 3. 匹配目标 task_id
+            if (record.task_id === targetId) {
+                return record;
+            }
+        }
+        
+        return null; // 没找到
+    } catch (error) {
+        console.error("查找 HumanEval 失败:", error);
+        return null;
     }
-
-    // 3. 稳妥替换：匹配 ] 或 } 后面跟着的逗号
-    // 我们使用了更宽容的正则，确保匹配到括号后的逗号
-    return str.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
 }
 
         // 显示详细信息
@@ -1479,6 +1490,7 @@ function formatJsonList(value) {
             
             selectedIndex = index;
             const data = filteredData[index];
+            const humaneval =findHumanEvalTask(data.basic)
             
             // 更新选中行样式
             document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
@@ -1550,17 +1562,26 @@ function formatJsonList(value) {
                 
                 <div class="detail-card">
                     <div class="detail-label">
-                        <i class="fas fa-keyboard"></i> 测试输入
+                        <i class="fas fa-keyboard"></i> 测试用例输入
                     </div>
                    <div class="detail-value">${formatValue(data.test_input)}</div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-label">
+                        <i class="fas fa-chart-bar"></i> 种子预期输出
+                    </div>
+                   <div class="detail-value">${formatValue(humaneval.result</div>result)}</div>
                 </div>
                 
                 <div class="detail-card">
                     <div class="detail-label">
-                        <i class="fas fa-chart-bar"></i> 测试结果
+                        <i class="fas fa-chart-bar"></i> 变异预期输出
                     </div>
                    <div class="detail-value">${formatValue(data.result)}</div>
                 </div>
+
+                
                 
                 <div class="detail-card full-width">
                     <div class="detail-label">
@@ -2086,6 +2107,7 @@ function formatValue(value) {
     </script>
 </body>
 </html>
+
 
 
 
