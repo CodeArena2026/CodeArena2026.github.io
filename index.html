@@ -1504,13 +1504,7 @@
             // 生成详细信息
             const detailContent = document.getElementById('detailContent');
             detailContent.innerHTML = `
-                <div class="detail-card">
-                    <div class="detail-label">
-                        <i class="fas fa-puzzle-piece"></i> Seed Problem
-                    </div>
-                    <div class="detail-value">${data.epoch || '-'}</div>
-                </div>
-                
+
                 <div class="detail-card">
                     <div class="detail-label">
                         <i class="fas fa-puzzle-piece"></i> Seed Problem
@@ -1567,13 +1561,6 @@
                    <div class="detail-value">${formatValue(data.test_input)}</div>
                 </div>
 
-                <div class="detail-card">
-                    <div class="detail-label">
-                        <i class="fas fa-chart-bar"></i> 种子预期输出
-                    </div>
-                   <div class="detail-value">${formatValue(data.result</div>result)}</div>
-                </div>
-                
                 <div class="detail-card">
                     <div class="detail-label">
                         <i class="fas fa-chart-bar"></i> 变异预期输出
@@ -2107,6 +2094,7 @@ function formatValue(value) {
     </script>
 </body>
 </html>
+
 
 
 
