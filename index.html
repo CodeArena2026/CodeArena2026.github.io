@@ -1032,7 +1032,7 @@
             </div>
          <!-- 侧边栏 -->
             <div class="sidebar">
-                <!-- 文件控制 -->
+                <!-- 文件控制 
                 <div class="file-controls">
                     <div class="file-input-wrapper">
                         <input type="file" id="fileInput" class="file-input" accept=".jsonl,.json" style="display: none;">
@@ -1053,7 +1053,7 @@
                         <div class="file-size" id="fileSize">正在加载...</div>
                     </div>
                 </div>
-                
+                -->
                 <!-- 详细信息面板 -->
                 <div class="detail-panel" id="detailPanel">
                     <div class="detail-header">
@@ -1477,6 +1477,13 @@
 
                 <div class="detail-card">
                     <div class="detail-label">
+                        <i class="fas fa-puzzle-piece"></i> epoch
+                    </div>
+                    <div class="detail-value">${data.epoch || '-'}</div>
+                </div> 
+
+                <div class="detail-card">
+                    <div class="detail-label">
                         <i class="fas fa-puzzle-piece"></i> Seed Problem
                     </div>
                     <div class="detail-value">${data.basic || '-'}</div>
@@ -1529,6 +1536,13 @@
                         <i class="fas fa-keyboard"></i> 测试用例输入
                     </div>
                    <div class="detail-value">${formatValue(data.test_input)}</div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-label">
+                        <i class="fas fa-chart-bar"></i> 种子预期输出
+                    </div>
+                   <div class="detail-value">${formatValue(data.resultH)}</div>
                 </div>
 
                 <div class="detail-card">
@@ -2064,6 +2078,7 @@ function formatValue(value) {
     </script>
 </body>
 </html>
+
 
 
 
