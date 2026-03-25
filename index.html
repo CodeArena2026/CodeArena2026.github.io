@@ -1364,7 +1364,7 @@
             
             // 计算统计数据
             const total = filteredData.length;
-            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
+            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result)).length;
             const failed = total - passed;
             const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
             
