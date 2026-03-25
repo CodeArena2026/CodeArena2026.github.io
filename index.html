@@ -1438,11 +1438,14 @@
 
         // 检查是否通过
         function isPassed(result) {
-            if (result === undefined || result === null) return false;
-            return (typeof result === 'string' && result.includes('Passed')) || 
+            if (typeof result === 'string' && result.includes('Passed')) || 
                    result === true || 
                    result === 'true' ||
-                   (typeof result === 'string' && result.toLowerCase() === 'passed');
+                   (typeof result === 'string' && result.toLowerCase() === 'passed')
+            return true;
+
+            return false;
+
         }
 
         // 获取状态徽章
