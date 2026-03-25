@@ -1364,7 +1364,7 @@
             
             // 计算统计数据
             const total = filteredData.length;
-            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result)).length;
+            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
             const failed = total - passed;
             const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
             
@@ -1438,14 +1438,11 @@
 
         // 检查是否通过
         function isPassed(result) {
-            if (typeof result === 'string' && result.includes('Passed')) || 
+            if (result === undefined || result === null) return false;
+            return (typeof result === 'string' && result.includes('Passed')) || 
                    result === true || 
                    result === 'true' ||
-                   (typeof result === 'string' && result.toLowerCase() === 'passed')
-            return true;
-
-            return false;
-
+                   (typeof result === 'string' && result.toLowerCase() === 'passed');
         }
 
         // 获取状态徽章
@@ -1671,7 +1668,7 @@
         // 更新页脚统计信息
         function updateFooterStats() {
             const total = filteredData.length;
-            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result)).length;
+            const passed = filteredData.filter(d => isPassed(d.PK_res ?? d.result_exec)).length;
             const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
             
             document.getElementById('footerStats').textContent = 
@@ -2081,7 +2078,6 @@ function formatValue(value) {
     </script>
 </body>
 </html>
-
 
 
 
