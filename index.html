@@ -1020,7 +1020,7 @@
                                 <th>防御模型</th>
                                 <th>轮次</th>
                                 <th>结果</th>
-                                <th>函数签名</th>
+                                <th>代码实际运行结果</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -1425,7 +1425,7 @@
                     <td>${data.defender || '-'}</td>
                     <td><span class="badge">${data.epoch || '-'}</span></td>
                     <td>${getStatusBadge(data.PK_res || data.result_exec)}</td>
-                    <td><code>${truncateText(data.sgn || '-', 40)}</code></td>
+                    <td>${data.result_exec || '-'}</code></td>
                 `;
                 
                 row.addEventListener('click', () => showDetail(index));
