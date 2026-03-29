@@ -1556,7 +1556,7 @@
                 
                 <div class="detail-card full-width">
                     <div class="detail-label">
-                        <i class="fas fa-code"></i> 原始代码
+                        <i class="fas fa-code"></i> 变异代码
                     </div>
                     <pre class="code-block">${escapeHtml(data.code || '暂无代码')}</pre>
                 </div>
@@ -1995,33 +1995,78 @@
         }
         
         // 辅助函数
-function formatValue(value) {
+// function formatValue(value) {
+//     // 1. 处理空值
+//     if (value === undefined || value === null) return '未设置';
+
+//     // 2. 如果是数组：遍历每一项并加入换行
+//     if (Array.isArray(value)) {
+//         return value.map(v => {
+//             // 如果数组里嵌套了对象，递归调用 formatValue，或者直接转 JSON
+//             return (typeof v === 'object' && v !== null) ? JSON.stringify(v, null, 2) : String(v);
+//         }).join('<br><br>'); 
+//     }
+
+//     // 3. 如果是普通对象：转换为格式化 JSON 后，利用 replace 实现每一行的视觉分隔
+//     if (typeof value === 'object') {
+//         const jsonStr = JSON.stringify(value, null, 2);
+//         // 这里我们可以选择保留 JSON 原生格式，或者为了统一风格也做处理
+//         return `<pre style="margin:0;">${escapeHtml(jsonStr)}</pre>`;
+//     }
+
+//     // 4. 普通字符串/数字：针对之前提到的“长字符串列表”格式进行智能分割
+//     const str = String(value);
+//     // 检测是否为类似 "[...], [...], [...]" 的字符串格式，如果是则进行替换
+//     if (str.includes('], [') || str.includes('}, {')) {
+//         return str.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
+//     }
+
+//     return str;
+// }
+
+        function formatValue(value) {
+    // 辅助函数：防止 XSS 攻击并保持 HTML 字符安全
+    const escapeHtml = (str) => String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
     // 1. 处理空值
     if (value === undefined || value === null) return '未设置';
 
-    // 2. 如果是数组：遍历每一项并加入换行
+    // 2. 如果是数组
     if (Array.isArray(value)) {
         return value.map(v => {
-            // 如果数组里嵌套了对象，递归调用 formatValue，或者直接转 JSON
-            return (typeof v === 'object' && v !== null) ? JSON.stringify(v, null, 2) : String(v);
-        }).join('<br><br>'); 
+            return (typeof v === 'object' && v !== null) 
+                ? JSON.stringify(v, null, 2) 
+                : String(v);
+        }).map(item => `<div style="white-space: pre-wrap; margin-bottom: 10px;">${escapeHtml(item)}</div>`)
+          .join(''); 
     }
 
-    // 3. 如果是普通对象：转换为格式化 JSON 后，利用 replace 实现每一行的视觉分隔
+    // 3. 如果是普通对象
     if (typeof value === 'object') {
         const jsonStr = JSON.stringify(value, null, 2);
-        // 这里我们可以选择保留 JSON 原生格式，或者为了统一风格也做处理
-        return `<pre style="margin:0;">${escapeHtml(jsonStr)}</pre>`;
+        // 使用 pre 标签天然保留空格和换行
+        return `<pre style="margin:0; white-space: pre-wrap; word-break: break-all;">${escapeHtml(jsonStr)}</pre>`;
     }
 
-    // 4. 普通字符串/数字：针对之前提到的“长字符串列表”格式进行智能分割
-    const str = String(value);
-    // 检测是否为类似 "[...], [...], [...]" 的字符串格式，如果是则进行替换
+    // 4. 普通字符串/数字
+    let str = String(value);
+
+    // 针对“长字符串列表”格式进行智能分割，同时保留其余部分的空格
     if (str.includes('], [') || str.includes('}, {')) {
-        return str.replace(/([\]}])\s*,\s*/g, '$1<br><br>');
+        // 分割后，确保每一段都包裹在保留空格的容器里
+        return str.split(/([\]}])\s*,\s*(?=[\[{])/g)
+            .map(part => `<div style="white-space: pre-wrap;">${escapeHtml(part)}</div>`)
+            .join('<br>');
     }
 
-    return str;
+    // 【核心修改】：所有普通字符串输出都强制保留空格
+    // 使用 pre-wrap 既能看到 "  Exa  mple" 的所有空格，又能在长行时自动换行
+    return `<div style="white-space: pre-wrap; display: inline-block;">${escapeHtml(str)}</div>`;
 }
 
         function escapeHtml(text) {
