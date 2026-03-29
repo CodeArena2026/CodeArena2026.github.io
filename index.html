@@ -1270,11 +1270,11 @@
             data._id = id;
             
             data.basic = normStr(data.basic);
-            data.constrain_pro = normStr(data.constrain_pro);
+            data.constrain_task = normStr(data.constrain_task);
             data.attack = normStr(data.attack);
             data.defender = normStr(data.defender);
 
-            data._basicKey = normKey(data.basic || data.constrain_pro);
+            data._basicKey = normKey(data.basic || data.constrain_task);
             data._attackKey = normKey(data.attack);
             data._defenderKey = normKey(data.defender);
             
@@ -1429,7 +1429,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${data._id}</td>
-                    <td>${data.basic || data.constrain_pro || '-'}</td>
+                    <td>${data.basic || data.constrain_task || '-'}</td>
                     <td><strong>${data.attack || '-'}</strong></td>
                     <td>${data.defender || '-'}</td>
                     <td><span class="badge">${data.epoch || '-'}</span></td>
@@ -1839,7 +1839,7 @@
             // 准备数据
             const seedCounts = {};
             filteredData.forEach(data => {
-                const seed = data.basic || data.constrain_pro;
+                const seed = data.basic || data.constrain_task;
                 if (seed) {
                     seedCounts[seed] = (seedCounts[seed] || 0) + 1;
                 }
@@ -1957,7 +1957,7 @@
                 // 准备数据
                 const seedCounts = {};
                 filteredData.forEach(data => {
-                    const seed = data.basic || data.constrain_pro;
+                    const seed = data.basic || data.constrain_task;
                     if (seed) {
                         seedCounts[seed] = (seedCounts[seed] || 0) + 1;
                     }
