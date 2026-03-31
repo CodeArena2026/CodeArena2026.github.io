@@ -1575,7 +1575,7 @@
                     <div class="detail-label">
                         <i class="fas fa-comment-alt"></i> 提示信息
                     </div>
-                    <pre class="code-block">${escapeHtml(data.prompt || '暂无提示信息')}</pre>
+                    <pre class="code-block">${escapeHtml(data.prompt_commented || data.prompt|| '暂无提示信息')}</pre>
                 </div>
                 
                 <div class="detail-card full-width">
@@ -1601,11 +1601,13 @@
 
         // 显示下一条详情
         function showNextDetail() {
-            if (selectedIndex < filteredData.length - 1) {
-                showDetail(selectedIndex + 1);
-            } else if (filteredData.length > 0) {
-                showDetail(0); // 循环到第一条
-            }
+            #if (selectedIndex < filteredData.length - 1) {
+            #    showDetail(selectedIndex + 1);
+            #} else if (filteredData.length > 0) {
+           #     showDetail(0); // 循环到第一条
+           # }
+
+            showDetail(selectedIndex)
         }
 
         // 关闭详情面板
