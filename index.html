@@ -1592,23 +1592,23 @@
 
         // 显示上一条详情
         function showPreviousDetail() {
-           // if (selectedIndex > 0) {
-          //      showDetail(selectedIndex - 1);
-          //  } else if (filteredData.length > 0) {
-         //       showDetail(filteredData.length - 1); // 循环到最后一条
-          //  }
-             showDetail(selectedIndex)
+           if (selectedIndex > 0) {
+                showDetail(selectedIndex - 1);
+            } else if (filteredData.length > 0) {
+               showDetail(filteredData.length - 1); // 循环到最后一条
+            }
+             //showDetail(selectedIndex)
         }
 
         // 显示下一条详情
         function showNextDetail() {
-        //if (selectedIndex < filteredData.length - 1) {
-           //    showDetail(selectedIndex + 1);
-           //} else if (filteredData.length > 0) {
-          //     showDetail(0); // 循环到第一条
-         // }
+        if (selectedIndex < filteredData.length - 1) {
+               showDetail(selectedIndex + 1);
+           } else if (filteredData.length > 0) {
+               showDetail(0); // 循环到第一条
+          }
 
-            showDetail(selectedIndex)
+            //showDetail(selectedIndex)
         }
 
         // 关闭详情面板
