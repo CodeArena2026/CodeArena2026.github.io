@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* 样式与原页面完全相同，省略重复部分（实际使用时请保留完整样式） */
         :root {
             --primary-gradient: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
             --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -34,7 +33,6 @@
         .header-content { position: relative; z-index: 1; }
         .header h1 { margin: 0; font-size: 2.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
         .header p { font-size: 1.2rem; opacity: 0.95; font-weight: 400; max-width: 600px; }
-        .header-icon { position: absolute; right: 50px; top: 50%; transform: translateY(-50%); font-size: 5rem; opacity: 0.15; }
         .dashboard { padding: 30px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 25px; }
         .stat-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--shadow-sm); transition: var(--transition-smooth); position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
@@ -66,18 +64,20 @@
         .file-size { font-size: 0.9rem; color: var(--text-secondary); }
         .table-header { padding: 25px 25px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
         .table-header h2 { font-size: 1.5rem; font-weight: 700; }
-        .search-box { position: relative; width: 300px; }
-        .search-box input { width: 100%; padding: 12px 20px 12px 45px; border-radius: 12px; border: 1px solid var(--border-color); background: #f8fafc; font-size: 0.95rem; transition: var(--transition-smooth); }
-        .search-box input:focus { outline: none; border-color: #6e8efb; box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.2); }
-        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
         .table-container { max-height: 500px; overflow-y: auto; padding: 0 25px 25px; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; }
         th { background: #f8fafc; padding: 18px 15px; text-align: left; font-weight: 600; color: var(--text-primary); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 10; font-size: 0.95rem; }
         td { padding: 18px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition-smooth); font-size: 0.95rem; }
         tr { transition: var(--transition-smooth); cursor: pointer; }
         tr:hover { background-color: #f8fafc; }
-        tr.selected { background-color: rgba(110, 142, 251, 0.1); position: relative; }
-        tr.selected::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary-gradient); }
+        /* 选中行效果：外发光凸出，无偏移 */
+        tr.selected {
+            box-shadow: 0 0 0 2px #6e8efb, 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            position: relative;
+            z-index: 1;
+            background-color: rgba(110, 142, 251, 0.05);
+        }
         .status-badge { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; gap: 6px; }
         .status-passed { background: rgba(66, 230, 149, 0.15); color: #0fa968; }
         .status-failed { background: rgba(255, 117, 140, 0.15); color: #e53e3e; }
@@ -112,18 +112,22 @@
         .filter-select:focus { outline: none; border-color: #6e8efb; box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.2); }
         .chart-area { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px; background: var(--light-bg); }
         .chart-card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow-md); padding: 25px; border: 1px solid var(--border-color); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .chart-header h3 { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; }
         .chart-actions { display: flex; gap: 8px; }
         .chart-btn { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: white; cursor: pointer; font-size: 0.8rem; transition: var(--transition-smooth); }
         .chart-btn:hover { background: var(--primary-gradient); color: white; border-color: #6e8efb; }
         .chart-container { position: relative; height: 300px; }
+        .seed-selector { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 0.85rem; }
         .table-actions { display: flex; align-items: center; gap: 15px; }
         .record-count { font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
         .primary-btn { background: var(--primary-gradient); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; }
         .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(110, 142, 251, 0.3); }
+        .difficulty-cell {
+            transition: background-color 0.2s;
+        }
         @media (max-width: 1200px) { .dashboard { grid-template-columns: 1fr 1fr; } .content-area { grid-template-columns: 1fr; } .chart-area { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .header-icon { display: none; } .table-header { flex-direction: column; align-items: flex-start; gap: 15px; } .search-box { width: 100%; } .navbar { flex-direction: column; gap: 10px; padding: 15px; } .filter-area { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; } .filter-section { flex-direction: column; align-items: stretch; } .chart-container { height: 250px; } }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .table-header { flex-direction: column; align-items: flex-start; gap: 15px; } .navbar { flex-direction: column; gap: 10px; padding: 15px; } .filter-area { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; } .filter-section { flex-direction: column; align-items: stretch; } .chart-container { height: 250px; } }
     </style>
 </head>
 <body>
@@ -134,7 +138,7 @@
     <div class="header">
         <div class="header-content">
             <h1>多文件数据可视化与分析平台</h1>
-            <p>选择 result 文件夹下的多个 JSONL 文件，合并分析</p>
+            <p>选择 result 文件夹下的多个 JSONL 文件，合并分析 | Seed Problem 颜色表示难度（红难绿易）</p>
         </div>
     </div>
     <div class="filter-area" id="filterArea">
@@ -145,8 +149,21 @@
     </div>
     <div class="dashboard" id="dashboard"></div>
     <div class="chart-area" id="chartArea">
-        <div class="chart-card"><div class="chart-header"><h3>模型成功率对比</h3><div class="chart-actions"><button class="chart-btn" data-chart="successRate" data-type="bar">柱状图</button><button class="chart-btn" data-chart="successRate" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="successRateChart"></canvas></div></div>
-        <div class="chart-card"><div class="chart-header"><h3>Seed Problem 分布</h3><div class="chart-actions"><button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button><button class="chart-btn" data-chart="seedDistribution" data-type="doughnut">环形图</button></div></div><div class="chart-container"><canvas id="seedDistributionChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><h3>防御模型测试结果构成 (堆叠百分比)</h3><div class="chart-actions"><button class="chart-btn" data-chart="defenseStacked" data-type="bar">柱状图</button><button class="chart-btn" data-chart="defenseStacked" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="defenseStackedChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><h3>攻击模型成功率 (难倒对手比例)</h3><div class="chart-actions"><button class="chart-btn" data-chart="attackSuccess" data-type="bar">柱状图</button><button class="chart-btn" data-chart="attackSuccess" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="attackSuccessChart"></canvas></div></div>
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Seed Problem 分析</h3>
+                <div class="chart-actions">
+                    <select id="seedViewSelect" class="seed-selector">
+                        <option value="all">全部（聚合）</option>
+                    </select>
+                    <button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button>
+                    <button class="chart-btn" data-chart="seedDistribution" data-type="bar">柱状图</button>
+                </div>
+            </div>
+            <div class="chart-container"><canvas id="seedDistributionChart"></canvas></div>
+        </div>
     </div>
     <div class="content-area">
         <div class="main-content">
@@ -154,7 +171,7 @@
             <div id="error" class="error" style="display: none;"><i class="fas fa-exclamation-circle"></i><div id="errorMessage"></div></div>
             <div id="loading" class="loading" style="display: none;"><div class="spinner"></div><p>正在加载数据...</p></div>
             <div id="emptyState" class="empty-state" style="display: none;"><div class="empty-icon"><i class="fas fa-database"></i></div><h3>暂无数据</h3><p>请点击下方按钮选择一个或多个 JSONL 文件（支持多选）</p><button class="primary-btn" id="loadFileBtn"><i class="fas fa-folder-open"></i> 选择文件</button></div>
-            <div class="table-container" id="tableContainer" style="display: none;"><table id="dataTable"><thead><tr><th>ID</th><th>Seed Problem</th><th>攻击模型</th><th>防御模型</th><th>轮次</th><th>结果</th><th>代码实际运行结果</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+            <div class="table-container" id="tableContainer" style="display: none;"><table id="dataTable"><thead><tr><th>ID</th><th>Seed Problem (难度分数)</th><th>攻击模型</th><th>防御模型</th><th>轮次</th><th>结果</th><th>代码实际运行结果</th></tr></thead><tbody id="tableBody"></tbody></table></div>
         </div>
         <div class="sidebar">
             <div class="file-controls">
@@ -162,6 +179,10 @@
                     <input type="file" id="fileInput" class="file-input" accept=".jsonl,.json" multiple style="display: none;">
                     <label for="fileInput" class="file-input-label"><i class="fas fa-folder-open"></i> 选择多个文件</label>
                     <button class="reload-btn" id="reloadBtn" title="重新加载当前所选文件"><i class="fas fa-redo"></i></button>
+                </div>
+                <div class="file-input-wrapper">
+                    <input type="file" id="folderInput" class="file-input" webkitdirectory multiple style="display: none;">
+                    <label for="folderInput" class="file-input-label"><i class="fas fa-folder-tree"></i> 选择文件夹</label>
                 </div>
                 <div class="current-file" id="currentFileInfo"><div class="file-name"><i class="fas fa-file-code"></i><span id="fileName">未加载文件</span></div><div class="file-size" id="fileSize">请选择 JSONL 文件</div></div>
             </div>
@@ -171,19 +192,48 @@
             </div>
         </div>
     </div>
-    <div class="footer"><div>CodeArena 2026 v2.0 - 多文件合并分析</div><div id="footerStats">加载数据后显示统计信息</div></div>
+    <div class="footer"><div>CodeArena 2026 v2.0 - 多文件合并分析 | 难度分数: 1=简单(绿), 0=困难(红)</div><div id="footerStats">加载数据后显示统计信息</div></div>
 </div>
 
 <script>
-    // 全局变量
+    // ==================== 硬编码的 Seed Problem 难度分数 (0~1) ====================
+    const problemDifficulty = {
+        "HumanEval/148": 0.32,
+        "HumanEval/114": 0.85,
+        "HumanEval/104": 0.67,
+        "HumanEval/96": 0.45,
+        "HumanEval/100": 0.91,
+        "HumanEval/59": 0.28,
+        "HumanEval/49": 0.73,
+        "HumanEval/106": 0.52,
+        "HumanEval/123": 0.39,
+        "HumanEval/16": 0.88,
+    };
+
+    function getProblemDifficulty(seedName) {
+        if (seedName && problemDifficulty[seedName] !== undefined) {
+            return problemDifficulty[seedName];
+        }
+        return 0.5;
+    }
+
+    function getColorForDifficulty(score) {
+        const r = Math.floor(255 * (1 - score));
+        const g = Math.floor(255 * score);
+        const b = 0;
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
     let currentData = [];
     let filteredData = [];
     let selectedIndex = -1;
-    let currentFiles = [];        // 存储已加载的文件名列表
+    let currentFiles = [];
+    let currentSeedView = 'all';      // 'all' 或单个问题名称
+    let currentSeedChartType = 'pie'; // 饼图或柱状图（用于单个问题视图）
 
-    // DOM 元素绑定
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('fileInput').addEventListener('change', handleMultipleFiles);
+        document.getElementById('folderInput').addEventListener('change', handleMultipleFiles);
         document.getElementById('reloadBtn').addEventListener('click', () => { if(currentFiles.length) reloadCurrentFiles(); else document.getElementById('fileInput').click(); });
         document.getElementById('prevBtn').addEventListener('click', showPreviousDetail);
         document.getElementById('nextBtn').addEventListener('click', showNextDetail);
@@ -193,13 +243,28 @@
         document.getElementById('attackFilter').addEventListener('change', applyFilters);
         document.getElementById('defenderFilter').addEventListener('change', applyFilters);
         document.getElementById('resultFilter').addEventListener('change', applyFilters);
-        document.querySelectorAll('.chart-btn').forEach(btn => btn.addEventListener('click', function() { updateChartType(this.getAttribute('data-chart'), this.getAttribute('data-type')); }));
+        
+        // Seed 视图下拉框变化
+        const seedViewSelect = document.getElementById('seedViewSelect');
+        seedViewSelect.addEventListener('change', (e) => {
+            currentSeedView = e.target.value;
+            renderSeedDistributionChart();
+        });
+        
+        document.querySelectorAll('.chart-btn').forEach(btn => btn.addEventListener('click', function() {
+            const chartId = this.getAttribute('data-chart');
+            const type = this.getAttribute('data-type');
+            if (chartId === 'seedDistribution') {
+                currentSeedChartType = type;
+                renderSeedDistributionChart();
+            } else {
+                updateChartType(chartId, type);
+            }
+        }));
         document.addEventListener('keydown', handleKeyboardNavigation);
-        // 初始显示空状态，等待用户选择文件
         showEmptyState();
     });
 
-    // 处理多文件选择
     async function handleMultipleFiles(event) {
         const files = Array.from(event.target.files);
         if (!files.length) return;
@@ -210,13 +275,11 @@
         closeDetailPanel();
 
         let allData = [];
-        let totalSize = 0;
         let fileNames = [];
 
         for (const file of files) {
             if (!file.name.endsWith('.jsonl') && !file.name.endsWith('.json')) continue;
             fileNames.push(file.name);
-            totalSize += file.size;
             try {
                 const content = await file.text();
                 const parsed = parseJSONLContent(content, file.name);
@@ -240,6 +303,8 @@
 
         updateFileInfo();
         updateFilters();
+        // 更新 Seed 下拉框选项
+        updateSeedViewSelect();
         renderDashboard();
         renderTable();
         renderCharts();
@@ -250,14 +315,29 @@
         showTable();
     }
 
-    // 重新加载当前已选文件（用于 reload 按钮）
+    function updateSeedViewSelect() {
+        const select = document.getElementById('seedViewSelect');
+        // 保留 all 选项
+        let options = '<option value="all">全部（聚合）</option>';
+        const seeds = [...new Set(filteredData.map(d => d.basic || d.constrain_task).filter(Boolean))];
+        seeds.forEach(seed => {
+            options += `<option value="${seed.replace(/"/g, '&quot;')}">${seed}</option>`;
+        });
+        select.innerHTML = options;
+        // 恢复之前的视图选择（如果可能）
+        if (currentSeedView !== 'all' && seeds.includes(currentSeedView)) {
+            select.value = currentSeedView;
+        } else {
+            currentSeedView = 'all';
+            select.value = 'all';
+        }
+    }
+
     async function reloadCurrentFiles() {
         if (!currentFiles.length) return;
-        // 模拟重新选择文件，需要从用户本地再次读取，这里简单触发文件选择
         document.getElementById('fileInput').click();
     }
 
-    // 解析单个文件内容，返回数据数组（带来源标记）
     function parseJSONLContent(content, fileName) {
         const lines = content.trim().split('\n');
         const dataList = [];
@@ -286,7 +366,6 @@
     }
 
     function sanitizeJsonLine(line) {
-        // 与之前相同的实现
         let out = '', i = 0, inStr = false, esc = false;
         while (i < line.length) {
             const ch = line[i];
@@ -332,6 +411,21 @@
         return (typeof result === 'string' && result.includes('Passed')) || result === true || result === 'true' || (typeof result === 'string' && result.toLowerCase() === 'passed');
     }
 
+    function isAttackSuccessful(entry) {
+        const pkRes = entry.PK_res;
+        if (pkRes === "Passed" || pkRes === "Success") return false;
+        return true;
+    }
+
+    function getFailType(resultExec) {
+        if (!resultExec || typeof resultExec !== 'string') return 'unknown';
+        const lower = resultExec.toLowerCase();
+        if (lower.includes('test case can not passed')) return 'failed_testcase';
+        if (lower.includes('failed in test case')) return 'failed_testcase';
+        return 'cannot_pass';
+    }
+
+
     function getStatusBadge(result) {
         const passed = isPassed(result);
         return `<span class="status-badge ${passed ? 'status-passed' : 'status-failed'}"><i class="fas ${passed ? 'fa-check' : 'fa-times'}"></i> ${passed ? '通过' : '失败'}</span>`;
@@ -356,8 +450,20 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         filteredData.forEach((d, idx) => {
+            const seed = d.basic || d.constrain_task || '-';
+            const score = getProblemDifficulty(seed);
+            const scoreDisplay = (score === 0.5 && problemDifficulty[seed] === undefined) ? ' (默认0.5)' : ` (${score.toFixed(2)})`;
+            const bgColor = getColorForDifficulty(score);
             const row = tbody.insertRow();
-            row.innerHTML = `<td>${d._id}</td><td>${d.basic || d.constrain_task || '-'}</td><td><strong>${d.attack || '-'}</strong></td><td>${d.defender || '-'}</td><td>${d.epoch || '-'}</td><td>${getStatusBadge(d.PK_res || d.result_exec)}</td><td>${d.result_exec || '-'}</td>`;
+            row.innerHTML = `
+                <td>${d._id}</td>
+                <td class="difficulty-cell" style="background-color: ${bgColor}; color: white; font-weight: bold;">${seed}${scoreDisplay}</td>
+                <td><strong>${d.attack || '-'}</strong></td>
+                <td>${d.defender || '-'}</td>
+                <td>${d.epoch || '-'}</td>
+                <td>${getStatusBadge(d.PK_res || d.result_exec)}</td>
+                <td>${d.result_exec || '-'}</td>
+            `;
             row.addEventListener('click', () => showDetail(idx));
         });
         document.getElementById('recordCount').textContent = `${filteredData.length} 条记录`;
@@ -368,7 +474,11 @@
         if (!filteredData.length || index<0 || index>=filteredData.length) return;
         selectedIndex = index;
         const data = filteredData[index];
-        document.querySelectorAll('#tableBody tr').forEach((tr,i)=>tr.classList.toggle('selected', i===index));
+        // 更新选中样式
+        document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
+            if (i === index) tr.classList.add('selected');
+            else tr.classList.remove('selected');
+        });
         updateNavButtons();
         const detailDiv = document.getElementById('detailContent');
         detailDiv.innerHTML = `
@@ -384,9 +494,9 @@
             <div class="detail-card"><div class="detail-label"><i class="fas fa-keyboard"></i> 测试用例输入</div><div class="detail-value">${formatValue(data.test_input)}</div></div>
             <div class="detail-card"><div class="detail-label"><i class="fas fa-chart-bar"></i> 种子预期输出</div><div class="detail-value">${formatValue(data.resultH)}</div></div>
             <div class="detail-card"><div class="detail-label"><i class="fas fa-chart-bar"></i> 变异预期输出</div><div class="detail-value">${formatValue(data.result)}</div></div>
-            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-code"></i> 变异代码</div><pre class="code-block">${escapeHtml(data.code || '暂无代码')}</pre></div>
-            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-comment-alt"></i> 提示信息</div><pre class="code-block">${escapeHtml(data.prompt_commented || data.prompt || '暂无提示信息')}</pre></div>
-            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-terminal"></i> 完成内容</div><pre class="code-block">${escapeHtml(data.completion || '暂无完成内容')}</pre></div>
+            <!--  <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-code"></i> 变异代码</div><pre class="code-block">${escapeHtml(data.code || '暂无代码')}</pre></div>
+         <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-comment-alt"></i> 提示信息</div><pre class="code-block">${escapeHtml(data.prompt_commented || data.prompt || '暂无提示信息')}</pre></div>--->
+            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-terminal"></i> 完成内容</div><pre class="code-block">${escapeHtml(data.exec || '暂无完成内容')}</pre></div>
         `;
         document.getElementById('detailPanel').classList.add('active');
     }
@@ -418,6 +528,7 @@
             if(result) { const passed = isPassed(d.PK_res ?? d.result_exec); if((result==='passed' && !passed) || (result==='failed' && passed)) return false; }
             return true;
         });
+        updateSeedViewSelect();
         renderDashboard(); renderTable(); renderCharts();
         if(filteredData.length) showDetail(0); else closeDetailPanel();
     }
@@ -438,41 +549,208 @@
     }
 
     let charts = {};
-    function renderCharts() { renderSuccessRateChart(); renderSeedDistributionChart(); }
-    function renderSuccessRateChart() {
-        const ctx = document.getElementById('successRateChart').getContext('2d');
+    function renderCharts() { renderDefenseStackedChart(); renderAttackSuccessChart(); renderSeedDistributionChart(); }
+
+    function renderDefenseStackedChart() {
+        const ctx = document.getElementById('defenseStackedChart').getContext('2d');
         const models = [...new Set(filteredData.map(d=>d.defender).filter(Boolean))];
-        const data = models.map(m=>{
-            const items = filteredData.filter(d=>d.defender===m);
-            const passed = items.filter(d=>isPassed(d.PK_res??d.result_exec)).length;
+        let stats = models.map(model => {
+            const items = filteredData.filter(d => d.defender === model);
+            let passed = 0, cannotPass = 0, failedTestCase = 0;
+            items.forEach(d => {
+                const resultExec = d.result_exec;
+                if (isPassed(d.PK_res ?? resultExec)) passed++;
+                else {
+                    const failType = getFailType(resultExec);
+                    if (failType === 'cannot_pass') cannotPass++;
+                    else failedTestCase++;
+                }
+            });
             const total = items.length;
-            return { model:m, successRate:total? (passed/total)*100:0, passed, total };
+            return { model, passed, cannotPass, failedTestCase, total };
         });
-        if(charts.successRate) charts.successRate.destroy();
-        charts.successRate = new Chart(ctx, {
-            type:'bar', data:{ labels:data.map(d=>d.model), datasets:[{ label:'成功率 (%)', data:data.map(d=>d.successRate), backgroundColor:'rgba(110,142,251,0.8)', borderColor:'rgba(110,142,251,1)', borderWidth:1 }] },
-            options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'成功率 (%)' } } }, plugins:{ tooltip:{ callbacks:{ afterLabel:(ctx)=>`通过: ${data[ctx.dataIndex].passed} / ${data[ctx.dataIndex].total}` } } } }
+        stats.sort((a,b) => (b.passed/b.total) - (a.passed/a.total));
+        const labels = stats.map(s => s.model);
+        const passPercent = stats.map(s => s.total ? (s.passed / s.total * 100) : 0);
+        const cannotPassPercent = stats.map(s => s.total ? (s.cannotPass / s.total * 100) : 0);
+        const failedPercent = stats.map(s => s.total ? (s.failedTestCase / s.total * 100) : 0);
+        if(charts.defenseStacked) charts.defenseStacked.destroy();
+        charts.defenseStacked = new Chart(ctx, {
+            type:'bar',
+            data:{ labels, datasets: [
+                { label: 'Passed (%)', data: passPercent, backgroundColor: '#42e695', borderColor: '#3bb2b8', borderWidth: 1, stack: 'stack0' },
+                    { label: 'Pattern Error or Unknown Error(%)', data: cannotPassPercent, backgroundColor: '#ffd166', borderColor: '#ffb347', borderWidth: 1, stack: 'stack0' },
+                    { label: 'Failed in Test Case (%)', data: failedPercent, backgroundColor: '#ff758c', borderColor: '#ff7eb3', borderWidth: 1, stack: 'stack0' }
+            ] },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'百分比 (%)' }, stacked:true }, x:{ stacked:true, ticks:{ maxRotation:90, minRotation:90, autoSkip:false, font:{ size:10 } }, title:{ display:true, text:'防御模型' } } }, plugins:{ tooltip:{ callbacks:{ label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } } } }
         });
     }
+
+    function renderAttackSuccessChart() {
+        const ctx = document.getElementById('attackSuccessChart').getContext('2d');
+        const attacks = [...new Set(filteredData.map(d=>d.attack).filter(Boolean))];
+        let stats = attacks.map(attack => {
+            const items = filteredData.filter(d => d.attack === attack);
+            let successCount = 0;
+            items.forEach(d => { if (isAttackSuccessful(d)) successCount++; });
+            const total = items.length;
+            const successRate = total ? (successCount / total * 100) : 0;
+            return { attack, successRate, successCount, total };
+        });
+        stats.sort((a,b) => b.successRate - a.successRate);
+        const labels = stats.map(s => s.attack);
+        const data = stats.map(s => s.successRate);
+        if(charts.attackSuccess) charts.attackSuccess.destroy();
+        charts.attackSuccess = new Chart(ctx, {
+            type:'bar',
+            data:{ labels, datasets: [{ label: '攻击成功率 (%)', data, backgroundColor: '#6e8efb', borderColor: '#a777e3', borderWidth: 1 }] },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'成功率 (%)' } }, x:{ ticks:{ maxRotation:90, minRotation:90, autoSkip:false, font:{ size:10 } }, title:{ display:true, text:'攻击模型' } } }, plugins:{ tooltip:{ callbacks:{ label: (ctx) => `${ctx.raw.toFixed(1)}% (${stats[ctx.dataIndex].successCount}/${stats[ctx.dataIndex].total})` } } } }
+        });
+    }
+
+    // 核心：根据 currentSeedView 和 currentSeedChartType 绘制不同的图表
     function renderSeedDistributionChart() {
         const ctx = document.getElementById('seedDistributionChart').getContext('2d');
-        const counts = {};
-        filteredData.forEach(d=>{ const seed = d.basic || d.constrain_task; if(seed) counts[seed] = (counts[seed]||0)+1; });
-        if(charts.seedDistribution) charts.seedDistribution.destroy();
-        charts.seedDistribution = new Chart(ctx, { type:'pie', data:{ labels:Object.keys(counts), datasets:[{ data:Object.values(counts), backgroundColor:['rgba(110,142,251,0.8)','rgba(66,230,149,0.8)','rgba(255,117,140,0.8)','rgba(255,209,102,0.8)','rgba(79,172,254,0.8)','rgba(122,103,238,0.8)'] }] }, options:{ responsive:true, maintainAspectRatio:false } });
+        if (charts.seedDistribution) charts.seedDistribution.destroy();
+
+        if (currentSeedView === 'all') {
+            // 聚合模式：显示前8个最多的 Seed Problem，其余合并为“其他”
+            const counts = {};
+            filteredData.forEach(d => {
+                const seed = d.basic || d.constrain_task;
+                if (seed) counts[seed] = (counts[seed] || 0) + 1;
+            });
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+            const top8 = sorted.slice(0, 8);
+            const otherCount = sorted.slice(8).reduce((sum, item) => sum + item[1], 0);
+            let labels = top8.map(item => item[0]);
+            let values = top8.map(item => item[1]);
+            if (otherCount > 0) {
+                labels.push('其他');
+                values.push(otherCount);
+            }
+            // 颜色：前8个使用各自难度颜色，“其他”使用灰色
+            const backgroundColors = labels.map(label => {
+                if (label === '其他') return '#9ca3af';
+                return getColorForDifficulty(getProblemDifficulty(label));
+            });
+            charts.seedDistribution = new Chart(ctx, {
+                type: currentSeedChartType === 'pie' ? 'pie' : 'bar',
+                data: { labels, datasets: [{ data: values, backgroundColor: backgroundColors, borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: (ctx) => {
+                    const label = ctx.label;
+                    const count = ctx.raw;
+                    if (label === '其他') return `其他: ${count} 条记录`;
+                    const score = getProblemDifficulty(label);
+                    return `${label}: ${count} 条记录 (难度: ${score.toFixed(2)})`;
+                } } } } }
+            });
+        } else {
+            // 单个问题模式：显示该问题的测试结果构成（通过 / test case can not passed / Failed in Test Case）
+            const targetSeed = currentSeedView;
+            const items = filteredData.filter(d => (d.basic || d.constrain_task) === targetSeed);
+            let passed = 0, cannotPass = 0, failedTestCase = 0;
+            items.forEach(d => {
+                const resultExec = d.result_exec;
+                if (isPassed(d.PK_res ?? resultExec)) passed++;
+                else {
+                    const failType = getFailType(resultExec);
+                    if (failType === 'cannot_pass') cannotPass++;
+                    else failedTestCase++;
+                }
+            });
+            const total = items.length;
+            const passPercent = total ? (passed / total * 100) : 0;
+            const cannotPassPercent = total ? (cannotPass / total * 100) : 0;
+            const failedPercent = total ? (failedTestCase / total * 100) : 0;
+            
+            if (currentSeedChartType === 'pie') {
+                charts.seedDistribution = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['通过', 'test case can not passed', 'Failed in Test Case'],
+                        datasets: [{ data: [passPercent, cannotPassPercent, failedPercent], backgroundColor: ['#42e695', '#ffd166', '#ff758c'], borderWidth: 1 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(1)}% (${[passed, cannotPass, failedTestCase][ctx.dataIndex]} 条)` } } } }
+                });
+            } else {
+                charts.seedDistribution = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['通过', 'test case can not passed', 'Failed in Test Case'],
+                        datasets: [{ label: '百分比 (%)', data: [passPercent, cannotPassPercent, failedPercent], backgroundColor: ['#42e695', '#ffd166', '#ff758c'], borderWidth: 1 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '百分比 (%)' } } }, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}% (${[passed, cannotPass, failedTestCase][ctx.dataIndex]} 条)` } } } }
+                });
+            }
+        }
     }
+
     function updateChartType(chartId, type) {
-        if(chartId==='successRate'){
-            const ctx = document.getElementById('successRateChart').getContext('2d');
+        if(chartId === 'defenseStacked') {
+            const ctx = document.getElementById('defenseStackedChart').getContext('2d');
             const models = [...new Set(filteredData.map(d=>d.defender).filter(Boolean))];
-            const data = models.map(m=>{ const items=filteredData.filter(d=>d.defender===m); const passed=items.filter(d=>isPassed(d.PK_res??d.result_exec)).length; const total=items.length; return { model:m, successRate:total? (passed/total)*100:0 }; });
-            if(charts.successRate) charts.successRate.destroy();
-            charts.successRate = new Chart(ctx, { type:type, data:{ labels:data.map(d=>d.model), datasets:[{ label:'成功率 (%)', data:data.map(d=>d.successRate), backgroundColor:type==='pie'?['rgba(110,142,251,0.8)','rgba(66,230,149,0.8)','rgba(255,117,140,0.8)','rgba(255,209,102,0.8)']:'rgba(110,142,251,0.8)', borderColor:'rgba(110,142,251,1)', borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false } });
-        } else if(chartId==='seedDistribution') {
-            const ctx = document.getElementById('seedDistributionChart').getContext('2d');
-            const counts={}; filteredData.forEach(d=>{ const seed=d.basic||d.constrain_task; if(seed) counts[seed]=(counts[seed]||0)+1; });
-            if(charts.seedDistribution) charts.seedDistribution.destroy();
-            charts.seedDistribution = new Chart(ctx, { type:type, data:{ labels:Object.keys(counts), datasets:[{ data:Object.values(counts), backgroundColor:['rgba(110,142,251,0.8)','rgba(66,230,149,0.8)','rgba(255,117,140,0.8)','rgba(255,209,102,0.8)'] }] }, options:{ responsive:true, maintainAspectRatio:false } });
+            let stats = models.map(model => {
+                const items = filteredData.filter(d => d.defender === model);
+                let passed = 0, cannotPass = 0, failedTestCase = 0;
+                items.forEach(d => {
+                    const resultExec = d.result_exec;
+                    if (isPassed(d.PK_res ?? resultExec)) passed++;
+                    else {
+                        const failType = getFailType(resultExec);
+                        if (failType === 'cannot_pass') cannotPass++;
+                        else failedTestCase++;
+                    }
+                });
+                const total = items.length;
+                return { model, passed, cannotPass, failedTestCase, total };
+            });
+            stats.sort((a,b) => (b.passed/b.total) - (a.passed/a.total));
+            if(charts.defenseStacked) charts.defenseStacked.destroy();
+            if(type === 'bar') {
+                const labels = stats.map(s => s.model);
+                const passPercent = stats.map(s => s.total ? (s.passed / s.total * 100) : 0);
+                const cannotPassPercent = stats.map(s => s.total ? (s.cannotPass / s.total * 100) : 0);
+                const failedPercent = stats.map(s => s.total ? (s.failedTestCase / s.total * 100) : 0);
+                charts.defenseStacked = new Chart(ctx, {
+                    type:'bar', data:{ labels, datasets: [
+                        { label: '通过 (%)', data: passPercent, backgroundColor: '#42e695', borderColor: '#3bb2b8', borderWidth: 1, stack: 'stack0' },
+                        { label: 'test case can not passed (%)', data: cannotPassPercent, backgroundColor: '#ffd166', borderColor: '#ffb347', borderWidth: 1, stack: 'stack0' },
+                        { label: 'Failed in Test Case (%)', data: failedPercent, backgroundColor: '#ff758c', borderColor: '#ff7eb3', borderWidth: 1, stack: 'stack0' }
+                    ] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'百分比 (%)' }, stacked:true }, x:{ stacked:true, ticks:{ maxRotation:90, minRotation:90, autoSkip:false, font:{ size:10 } }, title:{ display:true, text:'防御模型' } } }, plugins:{ tooltip:{ callbacks:{ label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } } } }
+                });
+            } else {
+                const data = stats.map(s => ({ model: s.model, successRate: s.total ? (s.passed / s.total * 100) : 0 }));
+                charts.defenseStacked = new Chart(ctx, {
+                    type:'pie', data:{ labels:data.map(d=>d.model), datasets:[{ data:data.map(d=>d.successRate), backgroundColor:['rgba(110,142,251,0.8)','rgba(66,230,149,0.8)','rgba(255,117,140,0.8)','rgba(255,209,102,0.8)','rgba(79,172,254,0.8)','rgba(122,103,238,0.8)'] }] }, options:{ responsive:true, maintainAspectRatio:false }
+                });
+            }
+        } else if(chartId === 'attackSuccess') {
+            const ctx = document.getElementById('attackSuccessChart').getContext('2d');
+            const attacks = [...new Set(filteredData.map(d=>d.attack).filter(Boolean))];
+            let stats = attacks.map(attack => {
+                const items = filteredData.filter(d => d.attack === attack);
+                let successCount = 0;
+                items.forEach(d => { if (isAttackSuccessful(d)) successCount++; });
+                const total = items.length;
+                const successRate = total ? (successCount / total * 100) : 0;
+                return { attack, successRate, successCount, total };
+            });
+            stats.sort((a,b) => b.successRate - a.successRate);
+            if(charts.attackSuccess) charts.attackSuccess.destroy();
+            if(type === 'bar') {
+                const labels = stats.map(s => s.attack);
+                const data = stats.map(s => s.successRate);
+                charts.attackSuccess = new Chart(ctx, {
+                    type:'bar', data:{ labels, datasets: [{ label: '攻击成功率 (%)', data, backgroundColor: '#6e8efb', borderColor: '#a777e3', borderWidth: 1 }] },
+                    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'成功率 (%)' } }, x:{ ticks:{ maxRotation:90, minRotation:90, autoSkip:false, font:{ size:10 } }, title:{ display:true, text:'攻击模型' } } }, plugins:{ tooltip:{ callbacks:{ label: (ctx) => `${ctx.raw.toFixed(1)}% (${stats[ctx.dataIndex].successCount}/${stats[ctx.dataIndex].total})` } } } }
+                });
+            } else {
+                const data = stats.map(s => s.successRate);
+                charts.attackSuccess = new Chart(ctx, {
+                    type:'pie', data:{ labels:stats.map(s=>s.attack), datasets:[{ data, backgroundColor:['rgba(110,142,251,0.8)','rgba(66,230,149,0.8)','rgba(255,117,140,0.8)','rgba(255,209,102,0.8)','rgba(79,172,254,0.8)','rgba(122,103,238,0.8)'] }] }, options:{ responsive:true, maintainAspectRatio:false }
+                });
+            }
         }
     }
 
