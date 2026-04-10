@@ -230,11 +230,18 @@
     let currentFiles = [];
     let currentSeedView = 'all';      // 'all' 或单个问题名称
     let currentSeedChartType = 'pie'; // 饼图或柱状图（用于单个问题视图）
+    /** 'repo' = 默认从仓库 filtered_chunks 加载；本地选文件后为 'local' */
+    let dataSourceMode = 'repo';
+    const REPO_CONTENTS_API = 'https://api.github.com/repos/CodeArena2026/CodeArena2026.github.io/contents/filtered_chunks';
 
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('fileInput').addEventListener('change', handleMultipleFiles);
         document.getElementById('folderInput').addEventListener('change', handleMultipleFiles);
-        document.getElementById('reloadBtn').addEventListener('click', () => { if(currentFiles.length) reloadCurrentFiles(); else document.getElementById('fileInput').click(); });
+        document.getElementById('reloadBtn').addEventListener('click', () => {
+            if (dataSourceMode === 'repo') loadDefaultFromRepo();
+            else if (currentFiles.length) reloadCurrentFiles();
+            else document.getElementById('fileInput').click();
+        });
         document.getElementById('prevBtn').addEventListener('click', showPreviousDetail);
         document.getElementById('nextBtn').addEventListener('click', showNextDetail);
         document.getElementById('closeBtn').addEventListener('click', closeDetailPanel);
@@ -262,8 +269,69 @@
             }
         }));
         document.addEventListener('keydown', handleKeyboardNavigation);
-        showEmptyState();
+        loadDefaultFromRepo();
     });
+
+    function applyParsedData(allData, fileNames) {
+        currentData = allData;
+        currentFiles = fileNames;
+        filteredData = [...currentData];
+        updateFileInfo();
+        updateFilters();
+        updateSeedViewSelect();
+        renderDashboard();
+        renderTable();
+        renderCharts();
+        if (currentData.length > 0) showDetail(0);
+        showLoading(false);
+        hideEmptyState();
+        showTable();
+    }
+
+    async function loadDefaultFromRepo() {
+        showLoading(true);
+        hideError();
+        hideEmptyState();
+        hideTable();
+        closeDetailPanel();
+        try {
+            const res = await fetch(REPO_CONTENTS_API, { headers: { Accept: 'application/vnd.github+json' } });
+            if (!res.ok) throw new Error(`列出 filtered_chunks 失败: ${res.status} ${res.statusText}`);
+            const entries = await res.json();
+            if (!Array.isArray(entries)) throw new Error(entries.message || '仓库路径不是文件夹或 API 返回异常');
+            const jsonlItems = entries.filter(function (e) { return e.type === 'file' && e.name.endsWith('.jsonl'); });
+            if (!jsonlItems.length) throw new Error('filtered_chunks 下没有 .jsonl 文件');
+            jsonlItems.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
+            let allData = [];
+            let fileNames = [];
+            for (let i = 0; i < jsonlItems.length; i++) {
+                const item = jsonlItems[i];
+                const rawRes = await fetch(item.download_url);
+                if (!rawRes.ok) throw new Error('拉取 ' + item.name + ' 失败: ' + rawRes.status);
+                const content = await rawRes.text();
+                fileNames.push(item.name);
+                try {
+                    allData.push.apply(allData, parseJSONLContent(content, item.name));
+                } catch (err) {
+                    console.error('解析文件 ' + item.name + ' 失败:', err);
+                    showError('文件 ' + item.name + ' 解析失败: ' + err.message);
+                }
+            }
+            if (allData.length === 0) {
+                showError('filtered_chunks 中 JSONL 无有效数据');
+                showEmptyState();
+                showLoading(false);
+                return;
+            }
+            dataSourceMode = 'repo';
+            applyParsedData(allData, fileNames);
+        } catch (err) {
+            console.error(err);
+            showError(err.message || String(err));
+            showEmptyState();
+            showLoading(false);
+        }
+    }
 
     async function handleMultipleFiles(event) {
         const files = Array.from(event.target.files);
@@ -297,22 +365,8 @@
             return;
         }
 
-        currentData = allData;
-        currentFiles = fileNames;
-        filteredData = [...currentData];
-
-        updateFileInfo();
-        updateFilters();
-        // 更新 Seed 下拉框选项
-        updateSeedViewSelect();
-        renderDashboard();
-        renderTable();
-        renderCharts();
-        if (currentData.length > 0) showDetail(0);
-
-        showLoading(false);
-        hideEmptyState();
-        showTable();
+        dataSourceMode = 'local';
+        applyParsedData(allData, fileNames);
     }
 
     function updateSeedViewSelect() {
