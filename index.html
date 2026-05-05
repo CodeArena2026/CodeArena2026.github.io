@@ -3,11 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeArena 2026 - 分页分析平台</title>
+    <title>CodeArena 2026 - 高性能分页分析平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary-gradient: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%); --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --success-gradient: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%); --danger-gradient: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); --warning-gradient: linear-gradient(135deg, #ffd166 0%, #ffb347 100%); --dark-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); --light-bg: #f8fafc; --card-bg: #ffffff; --text-primary: #1e293b; --text-secondary: #64748b; --border-color: #e2e8f0; --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05); --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04); --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+            --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%);
+            --danger-gradient: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            --warning-gradient: linear-gradient(135deg, #ffd166 0%, #ffb347 100%);
+            --dark-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--dark-bg); color: var(--text-primary); min-height: 100vh; padding: 20px; line-height: 1.6; }
         .container { max-width: 1400px; margin: 0 auto; background: var(--light-bg); border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; animation: fadeIn 0.8s ease-out; }
@@ -31,7 +47,10 @@
         .stat-icon.warning { background: var(--warning-gradient); }
         .stat-value { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
         .stat-label { font-size: 1rem; color: var(--text-secondary); font-weight: 500; }
-        .content-area { display: grid; grid-template-columns: 1fr; gap: 30px; padding: 0 30px 30px; }
+        .stat-change { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 10px; }
+        .positive-change { background: rgba(66, 230, 149, 0.15); color: #0fa968; }
+        .negative-change { background: rgba(255, 117, 140, 0.15); color: #e53e3e; }
+        .content-area { display: grid; grid-template-columns: 1fr 320px; gap: 30px; padding: 0 30px 30px; }
         .main-content { background: var(--card-bg); border-radius: 18px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--border-color); }
         .sidebar { display: flex; flex-direction: column; gap: 30px; }
         .file-controls { background: var(--card-bg); border-radius: 18px; padding: 25px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
@@ -42,6 +61,7 @@
         .reload-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(66, 230, 149, 0.3); }
         .current-file { background: rgba(110, 142, 251, 0.1); border-radius: 12px; padding: 15px; border-left: 4px solid #6e8efb; }
         .file-name { display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 5px; }
+        .file-size { font-size: 0.9rem; color: var(--text-secondary); }
         .table-header { padding: 25px 25px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px; }
         .table-header h2 { font-size: 1.5rem; font-weight: 700; }
         .table-container { max-height: 550px; overflow-y: auto; padding: 0 25px 25px; }
@@ -54,19 +74,19 @@
         .status-badge { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; gap: 6px; }
         .status-passed { background: rgba(66, 230, 149, 0.15); color: #0fa968; }
         .status-failed { background: rgba(255, 117, 140, 0.15); color: #e53e3e; }
-        .detail-panel { background: var(--card-bg); border-radius: 18px; padding: 30px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: none; animation: slideUp 0.4s ease-out; margin-top: 20px; }
+        .detail-panel { background: var(--card-bg); border-radius: 18px; padding: 30px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: none; animation: slideUp 0.4s ease-out; }
         .detail-panel.active { display: block; }
         .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
         .detail-title { font-size: 1.5rem; font-weight: 700; }
         .detail-nav { display: flex; gap: 10px; }
         .nav-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid var(--border-color); cursor: pointer; transition: var(--transition-smooth); color: var(--text-secondary); }
         .nav-btn:hover { background: var(--primary-gradient); color: white; border-color: #6e8efb; }
-        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; max-height: 500px; overflow-y: auto; }
         .detail-card { background: #f8fafc; border-radius: 14px; padding: 20px; border: 1px solid var(--border-color); transition: var(--transition-smooth); }
         .detail-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); }
         .detail-card.full-width { grid-column: 1 / -1; }
         .detail-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
-        .code-block { background: #1a1a2e; color: #e2e8f0; padding: 20px; border-radius: 12px; font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #2d3748; line-height: 1.5; margin-top: 10px; }
+        .code-block { background: #1a1a2e; color: #e2e8f0; padding: 20px; border-radius: 12px; font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #2d3748; line-height: 1.5; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--text-secondary); }
         .spinner { width: 60px; height: 60px; border: 4px solid rgba(110, 142, 251, 0.2); border-top-color: #6e8efb; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -88,7 +108,6 @@
         .chart-btn { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: white; cursor: pointer; font-size: 0.8rem; transition: var(--transition-smooth); }
         .chart-btn:hover { background: var(--primary-gradient); color: white; border-color: #6e8efb; }
         .chart-container { position: relative; height: 280px; }
-        .seed-selector { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 0.85rem; }
         .table-actions { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .pagination { display: flex; gap: 8px; align-items: center; margin-left: auto; }
         .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; transition: var(--transition-smooth); font-size: 0.85rem; }
@@ -97,13 +116,15 @@
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .page-info { font-size: 0.85rem; color: var(--text-secondary); }
         .primary-btn { background: var(--primary-gradient); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
-        @media (max-width: 1200px) { .dashboard { grid-template-columns: 1fr 1fr; } .chart-area { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .pagination { margin-left: 0; width: 100%; justify-content: center; } }
+        .seed-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-weight: bold; color: white; }
+        @media (max-width: 1200px) { .dashboard { grid-template-columns: 1fr 1fr; } .chart-area { grid-template-columns: 1fr; } .content-area { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .pagination { margin-left: 0; width: 100%; justify-content: center; } .filter-area { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
 <div class="container">
-    <nav class="navbar"><div class="navbar-brand"><i class="fas fa-chart-line"></i><span>CodeArena 2026</span></div></nav>
+    <nav class="navbar"><div class="navbar-brand"><i class="fas fa-chart-line"></i><span>CodeArena 2026 · 高性能分页版</span></div></nav>
+    <div class="header"><div class="header-content"><h1>多文件数据可视化与分析平台</h1><p>智能分页加载 · 支持上万条数据流畅浏览 · 后端优化</p></div></div>
     <div class="filter-area" id="filterArea">
         <div class="filter-section"><label class="filter-label">Seed Problem:</label><select id="seedFilter" class="filter-select"><option value="">全部</option></select></div>
         <div class="filter-section"><label class="filter-label">攻击模型:</label><select id="attackFilter" class="filter-select"><option value="">全部</option></select></div>
@@ -115,16 +136,15 @@
     <div class="chart-area" id="chartArea">
         <div class="chart-card"><div class="chart-header"><h3>防御模型测试结果构成</h3><div class="chart-actions"><button class="chart-btn" data-chart="defenseStacked" data-type="bar">柱状图</button><button class="chart-btn" data-chart="defenseStacked" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="defenseStackedChart"></canvas></div></div>
         <div class="chart-card"><div class="chart-header"><h3>攻击模型成功率</h3><div class="chart-actions"><button class="chart-btn" data-chart="attackSuccess" data-type="bar">柱状图</button><button class="chart-btn" data-chart="attackSuccess" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="attackSuccessChart"></canvas></div></div>
-       <div class="chart-card"><div class="chart-header"><h3>Seed Problem 分析</h3><div class="chart-actions"><select id="seedViewSelect" class="seed-selector"><option value="all">全部（聚合）</option></select><button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button><button class="chart-btn" data-chart="seedDistribution" data-type="bar">柱状图</button></div></div><div class="chart-container"><canvas id="seedDistributionChart"></canvas></div></div>
-
+        <div class="chart-card"><div class="chart-header"><h3>Seed Problem 难度分布</h3><div class="chart-actions"><select id="seedViewSelect" class="seed-selector"><option value="all">全部（聚合）</option></select><button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button><button class="chart-btn" data-chart="seedDistribution" data-type="bar">柱状图</button></div></div><div class="chart-container"><canvas id="seedDistributionChart"></canvas></div></div>
     </div>
     <div class="content-area">
         <div class="main-content">
             <div class="table-header"><h2><i class="fas fa-table"></i> 数据记录</h2><div class="table-actions"><span id="recordCount" class="record-count">0 条记录</span><div class="pagination" id="paginationControls"></div></div></div>
             <div id="error" class="error"><i class="fas fa-exclamation-circle"></i><div id="errorMessage"></div></div>
             <div id="loading" class="loading"><div class="spinner"></div><p>正在加载数据...</p></div>
-            <div id="emptyState" class="empty-state"><div class="empty-icon"><i class="fas fa-database"></i></div><h3>暂无数据</h3><p>点击下方按钮选择 JSONL 文件或从仓库自动加载</p><button class="primary-btn" id="loadFileBtn"><i class="fas fa-folder-open"></i> 选择文件</button></div>
-            <div class="table-container" id="tableContainer" style="display:none;"><table id="dataTable"><thead><tr><th>ID</th><th>Seed Problem (难度分数)</th><th>攻击模型</th><th>防御模型</th><th>轮次</th><th>结果</th><th>代码实际运行结果</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+            <div id="emptyState" class="empty-state"><div class="empty-icon"><i class="fas fa-database"></i></div><h3>暂无数据</h3><p>点击下方按钮选择 JSONL 文件（支持多选，自动分页）</p><button class="primary-btn" id="loadFileBtn"><i class="fas fa-folder-open"></i> 选择文件</button></div>
+            <div class="table-container" id="tableContainer" style="display:none;"><table id="dataTable"><thead><tr><th>ID</th><th>Seed Problem (难度)</th><th>攻击模型</th><th>防御模型</th><th>轮次</th><th>结果</th><th>执行结果</th></tr></thead><tbody id="tableBody"></tbody></table></div>
         </div>
         <div class="sidebar">
             <div class="file-controls">
@@ -133,11 +153,8 @@
                     <label for="fileInput" class="file-input-label"><i class="fas fa-folder-open"></i> 选择多个文件</label>
                     <button class="reload-btn" id="reloadBtn"><i class="fas fa-redo"></i></button>
                 </div>
-                <div class="file-input-wrapper">
-                    <input type="file" id="folderInput" webkitdirectory multiple style="display:none;">
-                    <label for="folderInput" class="file-input-label"><i class="fas fa-folder-tree"></i> 选择文件夹</label>
-                </div>
                 <div class="current-file"><div class="file-name"><i class="fas fa-file-code"></i><span id="fileName">未加载</span></div><div class="file-size" id="fileSize">等待加载</div></div>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:10px;"><i class="fas fa-tachometer-alt"></i> 分页大小: 25条/页 | 支持海量数据</div>
             </div>
             <div class="detail-panel" id="detailPanel">
                 <div class="detail-header"><div class="detail-title"><i class="fas fa-info-circle"></i> 详细信息</div><div class="detail-nav"><button class="nav-btn" id="prevBtn"><i class="fas fa-chevron-up"></i></button><button class="nav-btn" id="nextBtn"><i class="fas fa-chevron-down"></i></button><button class="nav-btn" id="closeBtn"><i class="fas fa-times"></i></button></div></div>
@@ -149,32 +166,33 @@
 </div>
 
 <script>
-    // 难度映射表（不变）
+    // 难度映射
     const problemDifficulty = { "HumanEval/148":0.32, "HumanEval/114":0.85, "HumanEval/104":0.67, "HumanEval/96":0.45, "HumanEval/100":0.91, "HumanEval/59":0.28, "HumanEval/49":0.73, "HumanEval/106":0.52, "HumanEval/123":0.39, "HumanEval/16":0.88 };
-    function getProblemDifficulty(seedName) { return (seedName && problemDifficulty[seedName] !== undefined) ? problemDifficulty[seedName] : 0.5; }
+    function getProblemDifficulty(seed) { return (seed && problemDifficulty[seed] !== undefined) ? problemDifficulty[seed] : 0.5; }
     function getColorForDifficulty(score) { return `rgb(${Math.floor(255*(1-score))}, ${Math.floor(255*score)}, 0)`; }
-    function isPassed(result) { if(result===undefined) return false; return (typeof result === 'string' && result.includes('Passed')) || result===true || result==='true' || (typeof result === 'string' && result.toLowerCase() === 'passed'); }
-    function isAttackSuccessful(entry) { const pkRes = entry.PK_res; return !(pkRes === "Passed" || pkRes === "Success"); }
-    function getFailType(resultExec) { if(!resultExec || typeof resultExec !== 'string') return 'unknown'; return resultExec.toLowerCase().includes('test case can not passed') ? 'cannot_pass' : 'failed_testcase'; }
-
-    // ---------- 全局状态 ----------
-    let fullData = [];            // 原始全量数据（聚合后）
-    let filteredIndices = [];      // 筛选后的索引列表（指向 fullData）
+    function isPassed(result) { return result !== undefined && ((typeof result === 'string' && (result.includes('Passed') || result.toLowerCase() === 'passed')) || result === true || result === 'true'); }
+    function isAttackSuccessful(entry) { const res = entry.PK_res; return !(res === "Passed" || res === "Success"); }
+    function getFailType(exec) { if(!exec) return 'unknown'; return exec.toLowerCase().includes('test case can not passed') ? 'cannot_pass' : 'failed_testcase'; }
+    
+    // 全局状态：存储原始数据、筛选后数据（索引数组）、分页状态
+    let fullData = [];              // 原始全量数据对象数组
+    let filteredIndices = [];       // 筛选后的索引列表（指向 fullData）
     let currentPage = 1;
     const PAGE_SIZE = 25;
-    let currentSelectedIdx = -1;    // 在 filteredIndices 中的位置
+    let currentSelectedFilterIdx = -1;  // 在 filteredIndices 中的索引
     let charts = {};
-
+    let currentSeedView = 'all';
+    let currentSeedChartType = 'pie';
+    
     // DOM 元素
     const fileInput = document.getElementById('fileInput');
-    const folderInput = document.getElementById('folderInput');
     const reloadBtn = document.getElementById('reloadBtn');
     const loadFileBtn = document.getElementById('loadFileBtn');
+    const applyFilterBtn = document.getElementById('applyFilterBtn');
     const seedFilter = document.getElementById('seedFilter');
     const attackFilter = document.getElementById('attackFilter');
     const defenderFilter = document.getElementById('defenderFilter');
     const resultFilter = document.getElementById('resultFilter');
-    const applyFilterBtn = document.getElementById('applyFilterBtn');
     const tableBody = document.getElementById('tableBody');
     const tableContainer = document.getElementById('tableContainer');
     const emptyStateDiv = document.getElementById('emptyState');
@@ -188,109 +206,228 @@
     const detailPanel = document.getElementById('detailPanel');
     const detailContent = document.getElementById('detailContent');
     const seedViewSelect = document.getElementById('seedViewSelect');
-    let currentSeedView = 'all', currentSeedChartType = 'pie';
-
-    // ---------- 工具函数 ----------
+    
     function normKey(str) { return (str || '').toString().trim().toLowerCase(); }
-    function normalizeData(item, idx, srcFile) { 
-        return { ...item, _id: idx+1, _sourceFile: srcFile, basic: item.basic || item.constrain_task || '', attack: item.attack || '', defender: item.defender || '', epoch: item.epoch || '', result_exec: item.result_exec || '', PK_res: item.PK_res, sgn: item.sgn, test_input: item.test_input, resultH: item.resultH, result: item.result, exec: item.exec };
+    function normalizeItem(item, idx, src) {
+        return { ...item, _uid: idx, _src: src, basic: item.basic || item.constrain_task || '', attack: item.attack || '', defender: item.defender || '', epoch: item.epoch || '', result_exec: item.result_exec || '', PK_res: item.PK_res, sgn: item.sgn, test_input: item.test_input, resultH: item.resultH, result: item.result, exec: item.exec, code: item.code, prompt: item.prompt, completion: item.completion };
     }
-    async function parseFiles(files) {
+    
+    async function parseAndLoad(files) {
+        loadingDiv.style.display = 'flex';
+        emptyStateDiv.style.display = 'none';
+        tableContainer.style.display = 'none';
+        errorDiv.style.display = 'none';
         let all = [];
         for (const file of files) {
             if (!file.name.endsWith('.jsonl') && !file.name.endsWith('.json')) continue;
             const text = await file.text();
             const lines = text.split('\n');
-            for(let i=0;i<lines.length;i++) {
+            for (let i=0; i<lines.length; i++) {
                 const line = lines[i].trim();
-                if(!line) continue;
-                try { all.push(JSON.parse(line)); } catch(e) { console.warn(`解析失败 ${file.name}:${i+1}`); }
+                if (!line) continue;
+                try { all.push(JSON.parse(line)); } catch(e) { console.warn(`Parse error ${file.name}:${i+1}`); }
             }
         }
-        return all.map((item, idx) => normalizeData(item, idx, files.map(f=>f.name).join(', ')));
+        fullData = all.map((d, idx) => normalizeItem(d, idx, files.map(f=>f.name).join(', ')));
+        fileNameSpan.innerText = `已加载 ${files.length} 个文件`;
+        fileSizeSpan.innerText = `${fullData.length} 条记录 (分页加载)`;
+        if (fullData.length === 0) { showError('未找到有效数据'); showEmptyState(); loadingDiv.style.display = 'none'; return; }
+        applyFiltersAndRefresh();
+        loadingDiv.style.display = 'none';
     }
-
-    async function loadFromRepo() {
-        loadingDiv.style.display = 'flex'; emptyStateDiv.style.display = 'none'; tableContainer.style.display = 'none'; errorDiv.style.display = 'none';
-        try {
-            const repoUrl = 'https://api.github.com/repos/CodeArena2026/CodeArena2026.github.io/contents/filtered_chunks';
-            const res = await fetch(repoUrl, { headers: { Accept: 'application/vnd.github+json' } });
-            if(!res.ok) throw new Error('获取仓库列表失败');
-            const entries = await res.json();
-            const jsonlItems = entries.filter(e => e.type === 'file' && e.name.endsWith('.jsonl'));
-            if(!jsonlItems.length) throw new Error('无 JSONL 文件');
-            let allData = [];
-            for(let item of jsonlItems) {
-                const raw = await fetch(item.download_url);
-                const text = await raw.text();
-                const lines = text.split('\n');
-                for(let i=0;i<lines.length;i++) {
-                    const line = lines[i].trim();
-                    if(line) try { allData.push(JSON.parse(line)); } catch(e) {}
-                }
-            }
-            fullData = allData.map((d, idx) => normalizeData(d, idx, 'repo'));
-            fileNameSpan.innerText = `仓库加载 ${jsonlItems.length} 个文件`;
-            fileSizeSpan.innerText = `${fullData.length} 条记录`;
-            applyFiltersAndRender();
-        } catch(err) { showError(err.message); emptyStateDiv.style.display = 'flex'; } finally { loadingDiv.style.display = 'none'; }
-    }
-
-    function showError(msg) { errorDiv.style.display = 'flex'; document.getElementById('errorMessage').innerText = msg; setTimeout(()=>errorDiv.style.display='none',4000); }
-    function applyFiltersAndRender() {
+    
+    function applyFiltersAndRefresh() {
         const seedVal = seedFilter.value, attackVal = attackFilter.value, defenderVal = defenderFilter.value, resultVal = resultFilter.value;
         filteredIndices = [];
-        for(let i=0;i<fullData.length;i++) {
+        for (let i=0; i<fullData.length; i++) {
             const d = fullData[i];
-            if(seedVal && normKey(d.basic) !== normKey(seedVal)) continue;
-            if(attackVal && normKey(d.attack) !== normKey(attackVal)) continue;
-            if(defenderVal && normKey(d.defender) !== normKey(defenderVal)) continue;
-            if(resultVal) { const passed = isPassed(d.PK_res ?? d.result_exec); if((resultVal==='passed' && !passed) || (resultVal==='failed' && passed)) continue; }
+            if (seedVal && normKey(d.basic) !== normKey(seedVal)) continue;
+            if (attackVal && normKey(d.attack) !== normKey(attackVal)) continue;
+            if (defenderVal && normKey(d.defender) !== normKey(defenderVal)) continue;
+            if (resultVal) { const passed = isPassed(d.PK_res ?? d.result_exec); if ((resultVal==='passed' && !passed) || (resultVal==='failed' && passed)) continue; }
             filteredIndices.push(i);
         }
         currentPage = 1;
-        renderDashboardAndCharts();
-        renderTablePage();
-        updateFilterOptions();
+        currentSelectedFilterIdx = -1;
+        updateFilterSelects();
         updateSeedViewSelect();
-        if(filteredIndices.length) showDetailByIndex(0); else closeDetailPanel();
-        footerStatsSpan.innerText = `筛选后 ${filteredIndices.length} 条记录`;
+        renderDashboardAndStats();
+        renderTablePage();
+        renderAllCharts();
+        if (filteredIndices.length) showDetailByFilterIdx(0);
+        else closeDetailPanel();
     }
-
-    function renderDashboardAndCharts() {
-        const total = filteredIndices.length;
-        let passed = 0;
-        filteredIndices.forEach(i => { if(isPassed(fullData[i].PK_res ?? fullData[i].result_exec)) passed++; });
-        const failed = total-passed, rate = total?((passed/total)*100).toFixed(1):0;
-        const attacks = new Set(), defenses = new Set();
-        filteredIndices.forEach(i => { attacks.add(fullData[i].attack); defenses.add(fullData[i].defender); });
-        document.getElementById('dashboard').innerHTML = `
-            <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-check-circle"></i></div><div class="stat-value">${passed}</div><div class="stat-label">通过测试</div><div class="stat-change positive-change">成功率 ${rate}%</div></div>
-            <div class="stat-card danger"><div class="stat-icon danger"><i class="fas fa-times-circle"></i></div><div class="stat-value">${failed}</div><div class="stat-label">失败测试</div></div>
-            <div class="stat-card primary"><div class="stat-icon primary"><i class="fas fa-robot"></i></div><div class="stat-value">${attacks.size}</div><div class="stat-label">攻击模型</div></div>
-            <div class="stat-card warning"><div class="stat-icon warning"><i class="fas fa-shield-alt"></i></div><div class="stat-value">${defenses.size}</div><div class="stat-label">防御模型</div></div>
-        `;
-        renderCharts();
+    
+    function updateFilterSelects() {
+        const seeds = [...new Set(fullData.map(d=>d.basic).filter(Boolean))];
+        const attacks = [...new Set(fullData.map(d=>d.attack).filter(Boolean))];
+        const defenders = [...new Set(fullData.map(d=>d.defender).filter(Boolean))];
+        const seedSel = seedFilter; seedSel.innerHTML = '<option value="">全部</option>';
+        seeds.forEach(s => { const opt = document.createElement('option'); opt.value=s; opt.textContent=s; seedSel.appendChild(opt); });
+        const attSel = attackFilter; attSel.innerHTML = '<option value="">全部</option>';
+        attacks.forEach(a => { const opt = document.createElement('option'); opt.value=a; opt.textContent=a; attSel.appendChild(opt); });
+        const defSel = defenderFilter; defSel.innerHTML = '<option value="">全部</option>';
+        defenders.forEach(d => { const opt = document.createElement('option'); opt.value=d; opt.textContent=d; defSel.appendChild(opt); });
     }
-
+    
+    function updateSeedViewSelect() {
+        const seeds = [...new Set(filteredIndices.map(idx => fullData[idx].basic).filter(Boolean))];
+        let html = '<option value="all">全部（聚合）</option>';
+        seeds.forEach(s => html += `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`);
+        seedViewSelect.innerHTML = html;
+        if (currentSeedView !== 'all' && seeds.includes(currentSeedView)) seedViewSelect.value = currentSeedView;
+        else { currentSeedView = 'all'; seedViewSelect.value = 'all'; }
+    }
+    
     function renderTablePage() {
-        if(!filteredIndices.length) { tableContainer.style.display = 'none'; emptyStateDiv.style.display = 'flex'; recordCountSpan.innerText = '0 条记录'; paginationDiv.innerHTML = ''; return; }
+        if (!filteredIndices.length) { tableContainer.style.display = 'none'; emptyStateDiv.style.display = 'flex'; recordCountSpan.innerText = '0 条记录'; paginationDiv.innerHTML = ''; return; }
         tableContainer.style.display = 'block'; emptyStateDiv.style.display = 'none';
         const start = (currentPage-1)*PAGE_SIZE;
-        const pageItems = filteredIndices.slice(start, start+PAGE_SIZE);
+        const pageIndices = filteredIndices.slice(start, start+PAGE_SIZE);
         tableBody.innerHTML = '';
-        pageItems.forEach((globalIdx, localPos) => {
+        pageIndices.forEach((globalIdx, localPos) => {
             const d = fullData[globalIdx];
             const seed = d.basic || '-';
             const score = getProblemDifficulty(seed);
             const bgColor = getColorForDifficulty(score);
             const row = tableBody.insertRow();
-            row.innerHTML = `<td>${d._id}</td><td style="background:${bgColor};color:white;font-weight:bold;">${seed} (${score.toFixed(2)})</td><td><strong>${d.attack||'-'}</strong></td><td>${d.defender||'-'}</td><td>${d.epoch||'-'}</td><td>${getStatusBadge(d.PK_res ?? d.result_exec)}</td><td>${d.result_exec||'-'}</td>`;
-            row.addEventListener('click', () => { const idxInFiltered = start+localPos; showDetailByIndex(idxInFiltered); });
-            if(currentSelectedIdx === start+localPos) row.classList.add('selected');
+            row.innerHTML = `<td>${d._uid+1}</td><td style="background:${bgColor};color:white;font-weight:bold;border-radius:6px;">${seed} (${score.toFixed(2)})</td><td><strong>${d.attack||'-'}</strong></td><td>${d.defender||'-'}</td><td>${d.epoch||'-'}</td><td>${getStatusBadge(d.PK_res ?? d.result_exec)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(d.result_exec || '-').substring(0,60)}</td>`;
+            const filterIdx = start + localPos;
+            row.addEventListener('click', () => { showDetailByFilterIdx(filterIdx); });
+            if (currentSelectedFilterIdx === filterIdx) row.classList.add('selected');
         });
         recordCountSpan.innerText = `${filteredIndices.length} 条记录`;
         renderPagination();
+        footerStatsSpan.innerText = `显示第 ${start+1}-${Math.min(start+PAGE_SIZE, filteredIndices.length)} 条 / 共 ${filteredIndices.length} 条 | 通过率: ${((filteredIndices.filter(idx=>isPassed(fullData[idx].PK_res??fullData[idx].result_exec)).length/filteredIndices.length)*100).toFixed(1)}%`;
     }
-
-    function getStatusBadge(result) { const passed=isPassed(result); return `<span class="status-badge ${passed?'status-passed':'status-failed'}"><i class="fas ${passed?'fa-check':'fa-times'}"></i> ${passed
+    
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredIndices.length / PAGE_SIZE);
+        if (totalPages <= 1) { paginationDiv.innerHTML = ''; return; }
+        let html = `<button class="page-btn" data-page="prev" ${currentPage===1?'disabled':''}><i class="fas fa-chevron-left"></i></button>`;
+        const startPage = Math.max(1, currentPage-2), endPage = Math.min(totalPages, currentPage+2);
+        for (let p=startPage; p<=endPage; p++) html += `<button class="page-btn ${p===currentPage?'active':''}" data-page="${p}">${p}</button>`;
+        html += `<button class="page-btn" data-page="next" ${currentPage===totalPages?'disabled':''}><i class="fas fa-chevron-right"></i></button>`;
+        paginationDiv.innerHTML = html;
+        document.querySelectorAll('.page-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            const pg = btn.getAttribute('data-page');
+            if (pg === 'prev' && currentPage>1) currentPage--;
+            else if (pg === 'next' && currentPage<totalPages) currentPage++;
+            else if (!isNaN(parseInt(pg))) currentPage = parseInt(pg);
+            renderTablePage();
+            // 清除选中高亮，详情面板关闭（可选）
+            closeDetailPanel();
+        }));
+    }
+    
+    function showDetailByFilterIdx(filterIdx) {
+        if (filterIdx < 0 || filterIdx >= filteredIndices.length) return;
+        currentSelectedFilterIdx = filterIdx;
+        const globalIdx = filteredIndices[filterIdx];
+        const d = fullData[globalIdx];
+        // 高亮当前行
+        document.querySelectorAll('#tableBody tr').forEach((tr, i) => { tr.classList.toggle('selected', i === (filterIdx % PAGE_SIZE)); });
+        updateNavButtons();
+        detailContent.innerHTML = `
+            <div class="detail-card"><div class="detail-label"><i class="fas fa-file-alt"></i> 来源</div><div class="detail-value">${d._src || '-'}</div></div>
+            <div class="detail-card"><div class="detail-label"><i class="fas fa-puzzle-piece"></i> Seed</div><div class="detail-value">${d.basic||'-'}</div></div>
+            <div class="detail-card"><div class="detail-label"><i class="fas fa-robot"></i> 攻击</div><div class="detail-value">${d.attack||'-'}</div></div>
+            <div class="detail-card"><div class="detail-label"><i class="fas fa-shield-alt"></i> 防御</div><div class="detail-value">${d.defender||'-'}</div></div>
+            <div class="detail-card"><div class="detail-label"><i class="fas fa-chart-bar"></i> 结果</div><div class="detail-value">${getStatusBadge(d.PK_res ?? d.result_exec)}</div></div>
+            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-terminal"></i> 执行输出</div><pre class="code-block">${escapeHtml(d.result_exec || '-')}</pre></div>
+            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-code"></i> 代码片段</div><pre class="code-block">${escapeHtml((d.code || d.completion || '无代码').substring(0, 2000))}</pre></div>
+        `;
+        detailPanel.classList.add('active');
+    }
+    
+    function showPreviousDetail() { if (currentSelectedFilterIdx > 0) showDetailByFilterIdx(currentSelectedFilterIdx-1); else if (filteredIndices.length) showDetailByFilterIdx(filteredIndices.length-1); }
+    function showNextDetail() { if (currentSelectedFilterIdx < filteredIndices.length-1) showDetailByFilterIdx(currentSelectedFilterIdx+1); else if (filteredIndices.length) showDetailByFilterIdx(0); }
+    function closeDetailPanel() { detailPanel.classList.remove('active'); currentSelectedFilterIdx = -1; document.querySelectorAll('#tableBody tr').forEach(tr=>tr.classList.remove('selected')); }
+    function updateNavButtons() { const p=document.getElementById('prevBtn'), n=document.getElementById('nextBtn'); p.disabled=!filteredIndices.length||currentSelectedFilterIdx<=0; n.disabled=!filteredIndices.length||currentSelectedFilterIdx>=filteredIndices.length-1; p.style.opacity=p.disabled?'0.5':'1'; n.style.opacity=n.disabled?'0.5':'1'; }
+    function getStatusBadge(result) { const p=isPassed(result); return `<span class="status-badge ${p?'status-passed':'status-failed'}"><i class="fas ${p?'fa-check':'fa-times'}"></i> ${p?'通过':'失败'}</span>`; }
+    function escapeHtml(t) { if(!t) return ''; const div=document.createElement('div'); div.textContent=t; return div.innerHTML; }
+    
+    function renderDashboardAndStats() {
+        const total = filteredIndices.length;
+        let passed = 0;
+        filteredIndices.forEach(i => { if(isPassed(fullData[i].PK_res ?? fullData[i].result_exec)) passed++; });
+        const attacks = new Set(), defenses = new Set();
+        filteredIndices.forEach(i => { attacks.add(fullData[i].attack); defenses.add(fullData[i].defender); });
+        document.getElementById('dashboard').innerHTML = `
+            <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-check-circle"></i></div><div class="stat-value">${passed}</div><div class="stat-label">通过测试</div><div class="stat-change positive-change">${total?((passed/total)*100).toFixed(1):0}%</div></div>
+            <div class="stat-card danger"><div class="stat-icon danger"><i class="fas fa-times-circle"></i></div><div class="stat-value">${total-passed}</div><div class="stat-label">失败测试</div></div>
+            <div class="stat-card primary"><div class="stat-icon primary"><i class="fas fa-robot"></i></div><div class="stat-value">${attacks.size}</div><div class="stat-label">攻击模型</div></div>
+            <div class="stat-card warning"><div class="stat-icon warning"><i class="fas fa-shield-alt"></i></div><div class="stat-value">${defenses.size}</div><div class="stat-label">防御模型</div></div>
+        `;
+    }
+    
+    function renderAllCharts() { renderDefenseStackedChart(); renderAttackSuccessChart(); renderSeedDistributionChart(); }
+    function renderDefenseStackedChart() {
+        const ctx = document.getElementById('defenseStackedChart').getContext('2d');
+        const modelMap = new Map();
+        filteredIndices.forEach(idx => {
+            const d = fullData[idx]; const m = d.defender; if(!m) return;
+            if(!modelMap.has(m)) modelMap.set(m, {passed:0, cannot:0, failed:0});
+            const stat = modelMap.get(m);
+            if(isPassed(d.PK_res ?? d.result_exec)) stat.passed++;
+            else { const ft = getFailType(d.result_exec); ft === 'cannot_pass' ? stat.cannot++ : stat.failed++; }
+        });
+        const models = [...modelMap.keys()];
+        const passPct = models.map(m => { const s=modelMap.get(m); const t=s.passed+s.cannot+s.failed; return t?(s.passed/t*100):0; });
+        const cannotPct = models.map(m => { const s=modelMap.get(m); const t=s.passed+s.cannot+s.failed; return t?(s.cannot/t*100):0; });
+        const failPct = models.map(m => { const s=modelMap.get(m); const t=s.passed+s.cannot+s.failed; return t?(s.failed/t*100):0; });
+        if(charts.defenseStacked) charts.defenseStacked.destroy();
+        charts.defenseStacked = new Chart(ctx, { type:'bar', data:{ labels:models, datasets:[{label:'通过', data:passPct, backgroundColor:'#42e695', stack:'s'},{label:'Pattern错误', data:cannotPct, backgroundColor:'#ffd166', stack:'s'},{label:'测试用例失败', data:failPct, backgroundColor:'#ff758c', stack:'s'}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{max:100, title:{display:true,text:'%'}}, x:{ticks:{rotation:45}} } } });
+    }
+    function renderAttackSuccessChart() {
+        const ctx = document.getElementById('attackSuccessChart').getContext('2d');
+        const attackMap = new Map();
+        filteredIndices.forEach(idx => { const d=fullData[idx]; const a=d.attack; if(!a) return; if(!attackMap.has(a)) attackMap.set(a,{succ:0,total:0}); const stat=attackMap.get(a); stat.total++; if(isAttackSuccessful(d)) stat.succ++; });
+        const attacks = [...attackMap.keys()];
+        const rates = attacks.map(a => attackMap.get(a).total ? (attackMap.get(a).succ/attackMap.get(a).total*100) : 0);
+        if(charts.attackSuccess) charts.attackSuccess.destroy();
+        charts.attackSuccess = new Chart(ctx, { type:'bar', data:{ labels:attacks, datasets:[{label:'成功率 (%)', data:rates, backgroundColor:'#6e8efb'}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{max:100} } } });
+    }
+    function renderSeedDistributionChart() {
+        const ctx = document.getElementById('seedDistributionChart').getContext('2d');
+        if(currentSeedView === 'all') {
+            const countMap = new Map();
+            filteredIndices.forEach(idx => { const s=fullData[idx].basic; if(s) countMap.set(s, (countMap.get(s)||0)+1); });
+            const items = [...countMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const others = [...countMap.entries()].slice(8).reduce((s,e)=>s+e[1],0);
+            const labels = items.map(i=>i[0]); const data = items.map(i=>i[1]);
+            if(others>0) { labels.push('其他'); data.push(others); }
+            const colors = labels.map(l => l==='其他'?'#9ca3af':getColorForDifficulty(getProblemDifficulty(l)));
+            if(charts.seedDistribution) charts.seedDistribution.destroy();
+            charts.seedDistribution = new Chart(ctx, { type:currentSeedChartType, data:{ labels, datasets:[{data, backgroundColor:colors}] }, options:{ responsive:true, maintainAspectRatio:false } });
+        } else {
+            const target = currentSeedView;
+            let passed=0, cannot=0, failed=0;
+            filteredIndices.forEach(idx => { const d=fullData[idx]; if((d.basic)===target) { if(isPassed(d.PK_res??d.result_exec)) passed++; else { getFailType(d.result_exec)==='cannot_pass' ? cannot++ : failed++; } } });
+            const total = passed+cannot+failed;
+            const pct = total?[passed/total*100, cannot/total*100, failed/total*100]:[0,0,0];
+            if(charts.seedDistribution) charts.seedDistribution.destroy();
+            charts.seedDistribution = new Chart(ctx, { type:currentSeedChartType, data:{ labels:['通过','Pattern错误','测试用例失败'], datasets:[{data:pct, backgroundColor:['#42e695','#ffd166','#ff758c']}] }, options:{ responsive:true, maintainAspectRatio:false } });
+        }
+    }
+    
+    function updateChartType(chartId, type) { if(chartId==='seedDistribution') { currentSeedChartType = type; renderSeedDistributionChart(); } else if(chartId==='defenseStacked') renderDefenseStackedChart(); else if(chartId==='attackSuccess') renderAttackSuccessChart(); }
+    
+    function showError(msg) { errorDiv.style.display='flex'; document.getElementById('errorMessage').innerText=msg; setTimeout(()=>errorDiv.style.display='none',4000); }
+    function showEmptyState() { emptyStateDiv.style.display='block'; tableContainer.style.display='none'; }
+    function showLoading(show) { loadingDiv.style.display = show ? 'flex' : 'none'; }
+    
+    fileInput.addEventListener('change', (e) => { if(e.target.files.length) parseAndLoad(Array.from(e.target.files)); });
+    reloadBtn.addEventListener('click', () => fileInput.click());
+    loadFileBtn.addEventListener('click', () => fileInput.click());
+    applyFilterBtn.addEventListener('click', () => applyFiltersAndRefresh());
+    document.getElementById('prevBtn').addEventListener('click', showPreviousDetail);
+    document.getElementById('nextBtn').addEventListener('click', showNextDetail);
+    document.getElementById('closeBtn').addEventListener('click', closeDetailPanel);
+    seedViewSelect.addEventListener('change', (e) => { currentSeedView = e.target.value; renderSeedDistributionChart(); });
+    document.querySelectorAll('.chart-btn').forEach(btn => btn.addEventListener('click', function() { updateChartType(this.dataset.chart, this.dataset.type); }));
+    document.addEventListener('keydown', (e) => { if(e.key==='ArrowUp') { e.preventDefault(); showPreviousDetail(); } else if(e.key==='ArrowDown') { e.preventDefault(); showNextDetail(); } else if(e.key==='Escape') closeDetailPanel(); });
+    showEmptyState();
+</script>
+</body>
+</html>
