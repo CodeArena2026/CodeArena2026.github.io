@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeArena 2026</title>
+    <link rel="icon" href="data:,"> <!-- 避免favicon加载错误 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -117,6 +118,7 @@
         .page-info { font-size: 0.85rem; color: var(--text-secondary); }
         .primary-btn { background: var(--primary-gradient); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
         .seed-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-weight: bold; color: white; }
+        .seed-selector { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: white; font-size: 0.9rem; }
         @media (max-width: 1200px) { .dashboard { grid-template-columns: 1fr 1fr; } .chart-area { grid-template-columns: 1fr; } .content-area { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .pagination { margin-left: 0; width: 100%; justify-content: center; } .filter-area { flex-direction: column; align-items: stretch; } }
     </style>
@@ -136,7 +138,8 @@
         <div class="chart-card"><div class="chart-header"><h3>防御模型测试结果构成</h3><div class="chart-actions"><button class="chart-btn" data-chart="defenseStacked" data-type="bar">柱状图</button><button class="chart-btn" data-chart="defenseStacked" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="defenseStackedChart"></canvas></div></div>
         <div class="chart-card"><div class="chart-header"><h3>攻击模型成功率</h3><div class="chart-actions"><button class="chart-btn" data-chart="attackSuccess" data-type="bar">柱状图</button><button class="chart-btn" data-chart="attackSuccess" data-type="pie">饼图</button></div></div><div class="chart-container"><canvas id="attackSuccessChart"></canvas></div></div>
         
-        <!----<div class="chart-card"><div class="chart-header"><h3>Seed Problem 难度分布</h3><div class="chart-actions"><select id="seedViewSelect" class="seed-selector"><option value="all">全部（聚合）</option></select><button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button><button class="chart-btn" data-chart="seedDistribution" data-type="bar">柱状图</button></div></div><div class="chart-container"><canvas id="seedDistributionChart"></canvas></div></div>--->
+        <!-- 以下第三个图表已取消注释，确保 seedViewSelect 元素存在，修复 addEventListener 错误 -->
+        <div class="chart-card"><div class="chart-header"><h3>Seed Problem 难度分布</h3><div class="chart-actions"><select id="seedViewSelect" class="seed-selector"><option value="all">全部（聚合）</option></select><button class="chart-btn" data-chart="seedDistribution" data-type="pie">饼图</button><button class="chart-btn" data-chart="seedDistribution" data-type="bar">柱状图</button></div></div><div class="chart-container"><canvas id="seedDistributionChart"></canvas></div></div>
     </div>
     <div class="content-area">
         <div class="main-content">
@@ -205,7 +208,7 @@
     const footerStatsSpan = document.getElementById('footerStats');
     const detailPanel = document.getElementById('detailPanel');
     const detailContent = document.getElementById('detailContent');
-    const seedViewSelect = document.getElementById('seedViewSelect');
+    const seedViewSelect = document.getElementById('seedViewSelect'); // 现在元素存在，不再为null
     
     function normKey(str) { return (str || '').toString().trim().toLowerCase(); }
     function normalizeItem(item, idx, src) {
@@ -271,6 +274,7 @@
     }
     
     function updateSeedViewSelect() {
+        if (!seedViewSelect) return; // 防御性检查，但现在已经存在
         const seeds = [...new Set(filteredIndices.map(idx => fullData[idx].basic).filter(Boolean))];
         let html = '<option value="all">全部（聚合）</option>';
         seeds.forEach(s => html += `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`);
@@ -315,7 +319,6 @@
             else if (pg === 'next' && currentPage<totalPages) currentPage++;
             else if (!isNaN(parseInt(pg))) currentPage = parseInt(pg);
             renderTablePage();
-            // 清除选中高亮，详情面板关闭（可选）
             closeDetailPanel();
         }));
     }
@@ -325,7 +328,6 @@
         currentSelectedFilterIdx = filterIdx;
         const globalIdx = filteredIndices[filterIdx];
         const d = fullData[globalIdx];
-        // 高亮当前行
         document.querySelectorAll('#tableBody tr').forEach((tr, i) => { tr.classList.toggle('selected', i === (filterIdx % PAGE_SIZE)); });
         updateNavButtons();
         detailContent.innerHTML = `
@@ -415,7 +417,6 @@
     
     function showError(msg) { errorDiv.style.display='flex'; document.getElementById('errorMessage').innerText=msg; setTimeout(()=>errorDiv.style.display='none',4000); }
     function showEmptyState() { emptyStateDiv.style.display='block'; tableContainer.style.display='none'; }
-    function showLoading(show) { loadingDiv.style.display = show ? 'flex' : 'none'; }
     
     fileInput.addEventListener('change', (e) => { if(e.target.files.length) parseAndLoad(Array.from(e.target.files)); });
     reloadBtn.addEventListener('click', () => fileInput.click());
@@ -424,7 +425,9 @@
     document.getElementById('prevBtn').addEventListener('click', showPreviousDetail);
     document.getElementById('nextBtn').addEventListener('click', showNextDetail);
     document.getElementById('closeBtn').addEventListener('click', closeDetailPanel);
-    seedViewSelect.addEventListener('change', (e) => { currentSeedView = e.target.value; renderSeedDistributionChart(); });
+    if(seedViewSelect) {
+        seedViewSelect.addEventListener('change', (e) => { currentSeedView = e.target.value; renderSeedDistributionChart(); });
+    }
     document.querySelectorAll('.chart-btn').forEach(btn => btn.addEventListener('click', function() { updateChartType(this.dataset.chart, this.dataset.type); }));
     document.addEventListener('keydown', (e) => { if(e.key==='ArrowUp') { e.preventDefault(); showPreviousDetail(); } else if(e.key==='ArrowDown') { e.preventDefault(); showNextDetail(); } else if(e.key==='Escape') closeDetailPanel(); });
     showEmptyState();
