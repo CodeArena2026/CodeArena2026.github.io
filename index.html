@@ -337,7 +337,7 @@
             <div class="detail-card"><div class="detail-label"><i class="fas fa-shield-alt"></i> 防御</div><div class="detail-value">${d.defender||'-'}</div></div>
             <div class="detail-card"><div class="detail-label"><i class="fas fa-chart-bar"></i> 结果</div><div class="detail-value">${getStatusBadge(d.PK_res ?? d.result_exec)}</div></div>
             <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-terminal"></i> 执行输出</div><pre class="code-block">${escapeHtml(d.result_exec || '-')}</pre></div>
-            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-code"></i> 代码片段</div><pre class="code-block">${escapeHtml((d.code || d.completion || '无代码').substring(0, 2000))}</pre></div>
+            <div class="detail-card full-width"><div class="detail-label"><i class="fas fa-code"></i> 代码片段</div><pre class="code-block">${escapeHtml((d.prompt || d.prompt_raw || '无代码').substring(0, 2000))}</pre></div>
         `;
         detailPanel.classList.add('active');
     }
@@ -389,7 +389,7 @@
         const rates = attacks.map(a => attackMap.get(a).total ? (attackMap.get(a).succ/attackMap.get(a).total*100) : 0);
         if(charts.attackSuccess) charts.attackSuccess.destroy();
         charts.attackSuccess = new Chart(ctx, { type:'bar', data:{ labels:attacks, datasets:[{label:'成功率 (%)', data:rates, backgroundColor:'#6e8efb'}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{max:100} } } });
-    }
+    }§
     function renderSeedDistributionChart() {
         const ctx = document.getElementById('seedDistributionChart').getContext('2d');
         if(currentSeedView === 'all') {
